@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title description">
+	<title id="title">MemFinance</title>
+	<desc id="description">Ikon MemFinance dengan grafik pertumbuhan</desc>
+	<defs>
+		<linearGradient id="surface" x1="8" y1="6" x2="56" y2="59" gradientUnits="userSpaceOnUse">
+			<stop stop-color="#14B8A6" />
+			<stop offset="1" stop-color="#047857" />
+		</linearGradient>
+		<linearGradient id="highlight" x1="22" y1="16" x2="43" y2="46" gradientUnits="userSpaceOnUse">
+			<stop stop-color="#CCFBF1" />
+			<stop offset="1" stop-color="#F0FDFA" />
+		</linearGradient>
+	</defs>
+	<rect width="64" height="64" rx="17" fill="url(#surface)" />
+	<path d="M13 47.5c5.4-1.2 9.6-4.2 13.1-8.8 3.2-4.2 5.8-9.3 10.5-12.3 4.2-2.7 8.6-3.5 14.4-2.5" fill="none" stroke="#99F6E4" stroke-linecap="round" stroke-width="4.5" />
+	<path d="m46.7 18.7 5.9 4.8-5.1 5.7" fill="none" stroke="#99F6E4" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5" />
+	<g fill="url(#highlight)">
+		<rect x="15" y="38" width="6.5" height="10" rx="3.25" />
+		<rect x="28.75" y="31" width="6.5" height="17" rx="3.25" />
+		<rect x="42.5" y="24" width="6.5" height="24" rx="3.25" />
+	</g>
+</svg>
