@@ -14,4 +14,12 @@ export const load: PageServerLoad = ({ locals, url }) => {
 	if (privateEnv.FORCE_AUTH_DISABLED === 'true' && !url.searchParams.has('force')) {
 		throw redirect(303, '/dashboard');
 	}
+
+	const supabaseUrl = privateEnv.PUBLIC_SUPABASE_URL || privateEnv.SUPABASE_URL || '';
+	const supabaseKey = privateEnv.PUBLIC_SUPABASE_PUBLISHABLE_KEY || privateEnv.SUPABASE_PUBLISHABLE_KEY || privateEnv.SUPABASE_ANON_KEY || '';
+
+	return {
+		serverSupabaseUrl: supabaseUrl,
+		serverSupabaseKey: supabaseKey
+	};
 };

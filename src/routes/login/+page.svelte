@@ -6,10 +6,12 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import { cleanSupabaseUrl, cleanSupabaseKey } from '$lib/supabase-config';
 
-	const activeUrl = cleanSupabaseUrl(PUBLIC_SUPABASE_URL);
-	const activeKey = cleanSupabaseKey(PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+	let { data } = $props();
 
-	let supabaseConfigured = $state(!!activeUrl && !!activeKey);
+	let activeUrl = $derived(cleanSupabaseUrl(PUBLIC_SUPABASE_URL || data?.serverSupabaseUrl));
+	let activeKey = $derived(cleanSupabaseKey(PUBLIC_SUPABASE_PUBLISHABLE_KEY || data?.serverSupabaseKey));
+
+	let supabaseConfigured = $derived(!!activeUrl && !!activeKey);
 
 	let authMethod = $state<'password' | 'otp'>('password');
 	let step = $state<'email' | 'otp'>('email');
@@ -26,9 +28,7 @@
 	let turnstileReady = $state(false);
 	let turnstileWidgetId: string | undefined;
 
-	let supabase = supabaseConfigured 
-		? createBrowserClient(activeUrl, activeKey)
-		: null;
+	let supabase = $derived(supabaseConfigured ? createBrowserClient(activeUrl, activeKey) : null);
 
 	let emailValid = $derived(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
 	let otpToken = $derived(otpDigits.join(''));
