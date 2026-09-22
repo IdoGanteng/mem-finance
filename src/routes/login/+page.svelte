@@ -28,6 +28,9 @@
 	let otpComplete = $derived(otpToken.length === 6);
 	let canResend = $derived(resendCooldown === 0 && !loading);
 
+	let turnstileRequired = $derived(!!PUBLIC_TURNSTILE_SITE_KEY);
+	let canSubmitEmail = $derived(emailValid && !loading && (!turnstileRequired || turnstileReady));
+
 	function resetError() { error = ''; }
 
 	onMount(() => {
@@ -39,33 +42,38 @@
 			error = 'Autentikasi gagal. Silakan coba lagi.';
 		}
 
-		const script = document.createElement('script');
-		script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-		script.async = true;
-		script.onload = () => {
-			const el = document.getElementById('turnstile-widget');
-			if (el && window.turnstile) {
-				turnstileWidgetId = window.turnstile.render('#turnstile-widget', {
-					sitekey: PUBLIC_TURNSTILE_SITE_KEY,
-					callback: (token: string) => { captchaToken = token; },
-					theme: 'light',
-					size: 'normal'
-				});
-				turnstileReady = true;
-			}
-		};
-		document.head.appendChild(script);
-		return () => { script.remove(); };
+		if (PUBLIC_TURNSTILE_SITE_KEY) {
+			const script = document.createElement('script');
+			script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+			script.async = true;
+			script.onload = () => {
+				const el = document.getElementById('turnstile-widget');
+				if (el && window.turnstile) {
+					turnstileWidgetId = window.turnstile.render('#turnstile-widget', {
+						sitekey: PUBLIC_TURNSTILE_SITE_KEY,
+						callback: (token: string) => { captchaToken = token; },
+						theme: 'light',
+						size: 'normal'
+					});
+					turnstileReady = true;
+				}
+			};
+			document.head.appendChild(script);
+			return () => { script.remove(); };
+		}
 	});
 
 	async function handleSendOtp() {
-		if (!emailValid || loading || !supabase) return;
+		if (!canSubmitEmail || !supabase) return;
 		resetError();
 		loading = true;
 
+		const options: { captchaToken?: string } = {};
+		if (captchaToken) options.captchaToken = captchaToken;
+
 		const { error: sendError } = await supabase.auth.signInWithOtp({
 			email,
-			options: { captchaToken }
+			options
 		});
 
 		loading = false;
@@ -247,7 +255,7 @@
 					{#if error}
 						<p class="text-xs text-red-500" transition:fade>{error}</p>
 					{/if}
-					<Button variant="primary" class="w-full" onclick={handleSendOtp} disabled={!emailValid || loading || !turnstileReady} loading={loading}>
+					<Button variant="primary" class="w-full" onclick={handleSendOtp} disabled={!canSubmitEmail} loading={loading}>
 						{loading ? 'Mengirim...' : 'Lanjutkan'}
 					</Button>
 				</div>

@@ -5,8 +5,12 @@ import { env as privateEnv } from '$env/dynamic/private';
 import { createClient } from '@supabase/supabase-js';
 import { createHmac } from 'node:crypto';
 
+if (typeof globalThis !== 'undefined' && !globalThis.WebSocket) {
+	globalThis.WebSocket = class {} as unknown as typeof WebSocket;
+}
+
 const PUBLIC_PATHS = ['/login', '/auth/callback', '/healthz'];
-const APP_SCHEMA = 'memfinance';
+const APP_SCHEMA = 'public';
 
 function getPrivateEnv(name: string): string {
 	return privateEnv[name] ?? '';
