@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="id" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>MemFinance — Dashboard Keuangan Pribadi</title>
+  <meta name="description" content="MemFinance - Aplikasi pencatatan keuangan personal dengan dukungan AI & receipt scanner.">
+  <link rel="icon" href="static/icon-192.svg" type="image/svg+xml">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              200: '#99f6e4',
+              300: '#5eead4',
+              400: '#2dd4bf',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+              800: '#115e59',
+              900: '#134e4a',
+              950: '#042f2e',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background-color: rgba(156, 163, 175, 0.4);
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-200 min-h-screen flex flex-col">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Header Nav -->
+  <header class="sticky top-0 z-40 w-full border-b border-gray-200 bg-white/90 backdrop-blur dark:border-gray-800 dark:bg-gray-900/90 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <!-- Brand -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-700 to-emerald-500 flex items-center justify-center text-white shadow-md shadow-teal-700/20">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M5 19V7l7-3 7 3v12l-7 3-7-3Z" />
+            <path d="M8 9h8M8 13h5" />
+          </svg>
+        </div>
+        <div>
+          <span class="text-lg font-extrabold tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
+            MemFinance
+            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-primary-100 text-primary-800 dark:bg-primary-950 dark:text-primary-300">Live Demo</span>
+          </span>
+          <p class="text-[11px] text-gray-500 dark:text-gray-400 hidden sm:block">Pencatatan Keuangan Personal & AI</p>
+        </div>
+      </div>
+
+      <!-- Right Actions: User Profile, Dark Mode, Repo Link -->
+      <div class="flex items-center gap-2 sm:gap-4">
+        <!-- User Badge -->
+        <div class="hidden sm:flex items-center gap-2.5 px-3 py-1.5 rounded-full border border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-800/80">
+          <div class="w-7 h-7 rounded-full bg-primary-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">
+            A
+          </div>
+          <div class="text-left leading-tight">
+            <p class="text-xs font-bold text-gray-800 dark:text-gray-200">Aldian Ridho</p>
+            <p class="text-[10px] text-gray-500 dark:text-gray-400">aldianridhoku@gmail.com</p>
+          </div>
+        </div>
+
+        <!-- Dark Mode Toggle -->
+        <button id="theme-toggle" class="p-2 rounded-xl border border-gray-200 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition" aria-label="Toggle Mode">
+          <svg id="theme-icon-sun" class="w-5 h-5 hidden dark:block text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+          <svg id="theme-icon-moon" class="w-5 h-5 block dark:hidden text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+          </svg>
+        </button>
+
+        <!-- GitHub Repo Link -->
+        <a href="https://github.com/IdoGanteng/mem-finance" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gray-900 hover:bg-black text-white text-xs font-bold transition shadow-sm dark:bg-primary-600 dark:hover:bg-primary-700">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+          </svg>
+          <span class="hidden sm:inline">GitHub Repo</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex flex-col md:flex-row gap-6">
+
+    <!-- Desktop Sidebar Tabs -->
+    <aside class="w-full md:w-60 shrink-0">
+      <nav class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-2.5 flex md:flex-col gap-1.5 shadow-xs sticky top-22 overflow-x-auto">
+        <button onclick="switchTab('dashboard')" class="nav-btn active w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition text-left" data-tab="dashboard">
+          <svg class="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/>
+          </svg>
+          <span>Dashboard</span>
+        </button>
+
+        <button onclick="switchTab('chat')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition text-left" data-tab="chat">
+          <svg class="w-5 h-5 text-teal-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+          </svg>
+          <span class="flex items-center justify-between w-full">
+            AI Chat & OCR
+            <span class="text-[10px] font-extrabold bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 px-1.5 py-0.5 rounded">Smart</span>
+          </span>
+        </button>
+
+        <button onclick="switchTab('transactions')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition text-left" data-tab="transactions">
+          <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+          </svg>
+          <span>Transaksi</span>
+        </button>
+
+        <button onclick="switchTab('budgets')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition text-left" data-tab="budgets">
+          <svg class="w-5 h-5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
+          </svg>
+          <span>Anggaran</span>
+        </button>
+
+        <button onclick="switchTab('settings')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition text-left" data-tab="settings">
+          <svg class="w-5 h-5 text-indigo-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          <span>Pengaturan</span>
+        </button>
+
+        <hr class="my-2 border-gray-200 dark:border-gray-800 hidden md:block">
+
+        <!-- Quick Add Transaction Button -->
+        <button onclick="openModal()" class="w-full flex items-center justify-center gap-2 px-3.5 py-3 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm shadow-md shadow-primary-700/20 transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+          </svg>
+          <span>Catat Transaksi</span>
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 space-y-6">
+
+      <!-- ================= TAB 1: DASHBOARD ================= -->
+      <section id="tab-dashboard" class="tab-content space-y-6">
+        <!-- Hero Saldo Card -->
+        <div class="rounded-3xl bg-gradient-to-br from-teal-800 via-teal-900 to-emerald-950 p-6 sm:p-8 text-white shadow-xl shadow-teal-950/15 relative overflow-hidden">
+          <div class="absolute -right-10 -bottom-10 w-60 h-60 rounded-full bg-teal-500/10 blur-3xl pointer-events-none"></div>
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
+            <div>
+              <p class="text-xs font-semibold tracking-wider uppercase text-teal-200">Total Saldo Bersih</p>
+              <h2 id="total-balance" class="text-3xl sm:text-4xl font-extrabold tracking-tight mt-1.5 tabular-nums">Rp 14.850.000</h2>
+              <div class="mt-3 flex items-center gap-2 text-xs font-medium text-teal-200">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 font-bold">
+                  +12.4%
+                </span>
+                <span>dibandingkan bulan lalu · Akun: <b>Aldian Ridho</b></span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2.5">
+              <button onclick="openModal('income')" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs backdrop-blur transition flex items-center gap-2">
+                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 11l5-5m0 0l5 5m-5-5v12"/></svg>
+                Pemasukan
+              </button>
+              <button onclick="openModal('expense')" class="px-4 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-bold text-xs shadow-lg shadow-primary-900/30 transition flex items-center gap-2">
+                <svg class="w-4 h-4 text-rose-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 13l-5 5m0 0l-5-5m5 5V6"/></svg>
+                Pengeluaran
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Summary Metrics -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Pemasukan -->
+          <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-xs">
+            <div class="flex items-center justify-between text-gray-500 dark:text-gray-400 text-xs font-semibold">
+              <span>Pemasukan Bulan Ini</span>
+              <span class="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/></svg>
+              </span>
+            </div>
+            <p id="total-income" class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-2 tabular-nums">Rp 8.500.000</p>
+            <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Gaji & pendapatan sampingan</p>
+          </div>
+
+          <!-- Pengeluaran -->
+          <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-xs">
+            <div class="flex items-center justify-between text-gray-500 dark:text-gray-400 text-xs font-semibold">
+              <span>Pengeluaran Bulan Ini</span>
+              <span class="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"/></svg>
+              </span>
+            </div>
+            <p id="total-expense" class="text-2xl font-extrabold text-rose-600 dark:text-rose-400 mt-2 tabular-nums">Rp 3.240.000</p>
+            <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">54% dari total plafon anggaran</p>
+          </div>
+
+          <!-- Sisa Anggaran -->
+          <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-xs">
+            <div class="flex items-center justify-between text-gray-500 dark:text-gray-400 text-xs font-semibold">
+              <span>Sisa Anggaran Tersedia</span>
+              <span class="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </span>
+            </div>
+            <p id="remaining-budget" class="text-2xl font-extrabold text-gray-900 dark:text-white mt-2 tabular-nums">Rp 2.760.000</p>
+            <p class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-semibold">Status: Sangat Terkendali</p>
+          </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Donut Chart: Pengeluaran per Kategori -->
+          <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-xs">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-bold text-gray-900 dark:text-white">Pengeluaran per Kategori</h3>
+              <span class="text-xs text-gray-500 dark:text-gray-400">Bulan Ini</span>
+            </div>
+            <div class="relative h-64 flex items-center justify-center">
+              <canvas id="categoryChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Bar Chart: Arus Kas Mingguan -->
+          <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-xs">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-bold text-gray-900 dark:text-white">Arus Kas Mingguan</h3>
+              <span class="text-xs text-gray-500 dark:text-gray-400">September 2026</span>
+            </div>
+            <div class="relative h-64">
+              <canvas id="cashflowChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Transactions Table -->
+        <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-xs">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-sm font-bold text-gray-900 dark:text-white">Transaksi Terkini</h3>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Catatan terbaru yang tersimpan di sistem</p>
+            </div>
+            <button onclick="switchTab('transactions')" class="text-xs font-bold text-primary-600 dark:text-primary-400 hover:underline">
+              Lihat Semua →
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="text-xs text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-800">
+                <tr>
+                  <th class="py-2.5 font-bold">Kategori & Catatan</th>
+                  <th class="py-2.5 font-bold">Tanggal</th>
+                  <th class="py-2.5 font-bold text-right">Nominal</th>
+                  <th class="py-2.5 font-bold text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="recent-transactions-tbody" class="divide-y divide-gray-100 dark:divide-gray-800/60">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 2: AI CHAT & OCR ================= -->
+      <section id="tab-chat" class="tab-content hidden space-y-6">
+        <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-xs">
+          <div class="flex items-center gap-3 border-b border-gray-100 dark:border-gray-800 pb-4 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300 flex items-center justify-center font-bold">
+              ✦
+            </div>
+            <div>
+              <h2 class="text-base font-extrabold text-gray-900 dark:text-white">AI Financial Assistant & Receipt OCR</h2>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Ketik transaksi seperti mengobrol atau unggah foto struk belanja.</p>
+            </div>
+          </div>
+
+          <!-- Chat Message Thread -->
+          <div id="chat-messages" class="h-96 overflow-y-auto space-y-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 custom-scroll">
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center text-xs font-bold shrink-0">AI</div>
+              <div class="rounded-2xl rounded-tl-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-3.5 text-xs text-gray-800 dark:text-gray-200 shadow-xs max-w-md">
+                Halo <b>Aldian</b>! Anda bisa langsung ketik transaksi harian seperti:
+                <div class="mt-2 space-y-1 font-mono text-[11px] text-primary-700 dark:text-primary-300">
+                  <p class="bg-primary-50 dark:bg-primary-950/60 p-1.5 rounded cursor-pointer hover:bg-primary-100 dark:hover:bg-primary-900" onclick="fillChatInput(this.innerText)">Beli Kopi Kenangan 25.000</p>
+                  <p class="bg-primary-50 dark:bg-primary-950/60 p-1.5 rounded cursor-pointer hover:bg-primary-100 dark:hover:bg-primary-900" onclick="fillChatInput(this.innerText)">Makan Siang Nasi Padang 35rb</p>
+                  <p class="bg-primary-50 dark:bg-primary-950/60 p-1.5 rounded cursor-pointer hover:bg-primary-100 dark:hover:bg-primary-900" onclick="fillChatInput(this.innerText)">Gaji Proyek Desain 2.500.000</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Input Composer -->
+          <div class="mt-4 flex gap-2">
+            <label for="receipt-file-input" class="p-3 rounded-xl border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-pointer transition flex items-center justify-center" title="Unggah Foto Struk (OCR)">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <input id="receipt-file-input" type="file" accept="image/*" class="hidden" onchange="handleReceiptUpload(event)">
+            </label>
+
+            <input id="chat-input" type="text" placeholder="Tulis transaksi (contoh: Makan siang 35rb)..." class="flex-1 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30" onkeydown="if(event.key === 'Enter') handleChatSubmit()">
+
+            <button onclick="handleChatSubmit()" class="px-5 py-3 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm shadow-md shadow-primary-700/20 transition">
+              Kirim
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 3: TRANSAKSI LENGKAP ================= -->
+      <section id="tab-transactions" class="tab-content hidden space-y-6">
+        <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-xs space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-base font-extrabold text-gray-900 dark:text-white">Daftar Semua Transaksi</h2>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Total riwayat pemasukan dan pengeluaran</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="exportCSV()" class="px-3.5 py-2 rounded-xl border border-gray-200 dark:border-gray-800 text-xs font-bold hover:bg-gray-100 dark:hover:bg-gray-800 transition flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Ekspor CSV
+              </button>
+              <button onclick="openModal()" class="px-3.5 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                Tambah Baru
+              </button>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="flex flex-wrap gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+            <button onclick="filterTransactions('all')" class="filter-btn active px-3 py-1.5 rounded-lg text-xs font-bold bg-primary-600 text-white" data-filter="all">Semua</button>
+            <button onclick="filterTransactions('expense')" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400" data-filter="expense">Pengeluaran</button>
+            <button onclick="filterTransactions('income')" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400" data-filter="income">Pemasukan</button>
+          </div>
+
+          <!-- Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="text-xs text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-800">
+                <tr>
+                  <th class="py-3 font-bold">Kategori</th>
+                  <th class="py-3 font-bold">Catatan</th>
+                  <th class="py-3 font-bold">Tanggal</th>
+                  <th class="py-3 font-bold text-right">Nominal</th>
+                  <th class="py-3 font-bold text-center">Tindakan</th>
+                </tr>
+              </thead>
+              <tbody id="all-transactions-tbody" class="divide-y divide-gray-100 dark:divide-gray-800/60">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 4: ANGGARAN ================= -->
+      <section id="tab-budgets" class="tab-content hidden space-y-6">
+        <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-xs space-y-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-extrabold text-gray-900 dark:text-white">Alokasi & Batas Anggaran</h2>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Pantau batas belanja per kategori setiap bulan</p>
+            </div>
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Plafon: Rp 6.000.000</span>
+          </div>
+
+          <div id="budgets-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 5: PENGATURAN ================= -->
+      <section id="tab-settings" class="tab-content hidden space-y-6">
+        <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-xs space-y-6">
+          <div>
+            <h2 class="text-base font-extrabold text-gray-900 dark:text-white">Pengaturan Pengguna & Sistem</h2>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Kelola profil, sesi, dan penyimpanan data</p>
+          </div>
+
+          <!-- User Card -->
+          <div class="p-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary-600 to-teal-400 text-white font-extrabold text-xl flex items-center justify-center shadow-md">
+              A
+            </div>
+            <div class="flex-1">
+              <h3 class="text-sm font-bold text-gray-900 dark:text-white">Aldian Ridho</h3>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Email Utama: <span class="font-semibold text-primary-600 dark:text-primary-400">aldianridhoku@gmail.com</span></p>
+              <div class="mt-1 flex items-center gap-2">
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span class="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">Akses Penuh (Administrator / Local Active)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- System Info -->
+          <div class="space-y-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Status Konfigurasi</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div class="p-3 rounded-xl border border-gray-200 dark:border-gray-800 flex justify-between items-center">
+                <span class="text-gray-600 dark:text-gray-400">Akses Pengguna</span>
+                <span class="font-bold text-gray-900 dark:text-white">aldianridhoku@gmail.com</span>
+              </div>
+              <div class="p-3 rounded-xl border border-gray-200 dark:border-gray-800 flex justify-between items-center">
+                <span class="text-gray-600 dark:text-gray-400">Penyimpanan Lokal</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-400">Aktif (IndexedDB / LocalStorage)</span>
+              </div>
+              <div class="p-3 rounded-xl border border-gray-200 dark:border-gray-800 flex justify-between items-center">
+                <span class="text-gray-600 dark:text-gray-400">AI Receipt Parser</span>
+                <span class="font-bold text-primary-600 dark:text-primary-400">Cascade (Regex / Microservice)</span>
+              </div>
+              <div class="p-3 rounded-xl border border-gray-200 dark:border-gray-800 flex justify-between items-center">
+                <span class="text-gray-600 dark:text-gray-400">Status Build Produksi</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-400">Selesai (Node SvelteKit)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reset Demo Data -->
+          <div class="pt-4 border-t border-gray-100 dark:border-gray-800 flex justify-between items-center">
+            <div>
+              <p class="text-xs font-bold text-gray-800 dark:text-gray-200">Reset Data Demo</p>
+              <p class="text-[11px] text-gray-500">Kembalikan daftar transaksi dan saldo ke data awal bawaan.</p>
+            </div>
+            <button onclick="resetToInitialData()" class="px-3.5 py-2 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold transition">
+              Reset Data
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Quick Add Transaction Modal -->
+  <div id="modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-6 shadow-2xl space-y-4 animate-scale">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-extrabold text-gray-900 dark:text-white">Tambah Catatan Keuangan</h3>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg leading-none">&times;</button>
+      </div>
+
+      <!-- Type Switcher -->
+      <div class="grid grid-cols-2 gap-2 p-1 rounded-xl bg-gray-100 dark:bg-gray-800">
+        <button id="type-btn-expense" type="button" onclick="setModalType('expense')" class="py-2 text-xs font-extrabold rounded-lg bg-white dark:bg-gray-700 text-rose-600 dark:text-rose-300 shadow-xs transition">
+          Pengeluaran
+        </button>
+        <button id="type-btn-income" type="button" onclick="setModalType('income')" class="py-2 text-xs font-extrabold rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 transition">
+          Pemasukan
+        </button>
+      </div>
+
+      <!-- Form Inputs -->
+      <form id="tx-form" onsubmit="handleFormSubmit(event)" class="space-y-3">
+        <input type="hidden" id="modal-type" value="expense">
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Nominal (Rp)</label>
+          <input id="form-amount" type="number" placeholder="contoh: 50000" required class="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 font-semibold">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Kategori</label>
+          <select id="form-category" class="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30">
+            <option value="Makanan & Minuman">🍜 Makanan & Minuman</option>
+            <option value="Transportasi">🚗 Transportasi</option>
+            <option value="Belanja">🛍️ Belanja</option>
+            <option value="Tagihan">📄 Tagihan & Utilitas</option>
+            <option value="Hiburan">🎮 Hiburan</option>
+            <option value="Gaji">💼 Gaji & Honor</option>
+            <option value="Lainnya">📦 Lainnya</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Catatan / Deskripsi</label>
+          <input id="form-note" type="text" placeholder="contoh: Makan siang di kantor" required class="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Tanggal</label>
+          <input id="form-date" type="date" class="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30">
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 text-xs font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+            Batal
+          </button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold shadow-md shadow-primary-700/20 transition">
+            Simpan Transaksi
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Application Logic & Interactive State -->
+  <script>
+    // Initial Seed Data
+    const INITIAL_TRANSACTIONS = [
+      { id: '1', type: 'income', category: 'Gaji', amount: 8500000, note: 'Gaji Bulanan PT Digital', date: '2026-09-01' },
+      { id: '2', type: 'expense', category: 'Tagihan', amount: 850000, note: 'Listrik & Wifi Rumah', date: '2026-09-04' },
+      { id: '3', type: 'expense', category: 'Makanan & Minuman', amount: 65000, note: 'Kopi & Roti Sarapan', date: '2026-09-18' },
+      { id: '4', type: 'expense', category: 'Transportasi', amount: 150000, note: 'Bensin Motor & Parkir', date: '2026-09-19' },
+      { id: '5', type: 'expense', category: 'Belanja', amount: 1450000, note: 'Belanja Bulanan Supermarket', date: '2026-09-20' },
+      { id: '6', type: 'expense', category: 'Makanan & Minuman', amount: 45000, note: 'Makan Malam Seafood', date: '2026-09-21' },
+      { id: '7', type: 'expense', category: 'Hiburan', amount: 180000, note: 'Tiket Bioskop & Snack', date: '2026-09-21' },
+    ];
+
+    const BUDGETS = [
+      { category: 'Makanan & Minuman', limit: 1500000, color: '#14b8a6' },
+      { category: 'Transportasi', limit: 800000, color: '#3b82f6' },
+      { category: 'Belanja', limit: 2000000, color: '#f59e0b' },
+      { category: 'Tagihan', limit: 1200000, color: '#8b5cf6' },
+      { category: 'Hiburan', limit: 500000, color: '#ec4899' },
+    ];
+
+    let state = {
+      transactions: JSON.parse(localStorage.getItem('memfinance_demo_tx') || JSON.stringify(INITIAL_TRANSACTIONS)),
+      currentFilter: 'all',
+      chartCategory: null,
+      chartCashflow: null
+    };
+
+    function formatRupiah(num) {
+      return 'Rp ' + Number(num || 0).toLocaleString('id-ID');
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const isSuccess = type === 'success';
+      toast.className = `pointer-events-auto flex items-center gap-2 px-4 py-3 rounded-2xl text-xs font-bold text-white shadow-xl transition-all transform duration-200 translate-y-2 opacity-0 ${
+        isSuccess ? 'bg-emerald-600' : 'bg-rose-600'
+      }`;
+      toast.innerHTML = `
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="${isSuccess ? 'M5 13l4 4L19 7' : 'M6 18L18 6M6 6l12 12'}"/></svg>
+        <span>${message}</span>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-x-4');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById('tab-' + tabId).classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        if (btn.getAttribute('data-tab') === tabId) {
+          btn.classList.add('bg-primary-50', 'dark:bg-primary-950/70', 'text-primary-700', 'dark:text-primary-300');
+        } else {
+          btn.classList.remove('bg-primary-50', 'dark:bg-primary-950/70', 'text-primary-700', 'dark:text-primary-300');
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function calculateMetrics() {
+      let income = 0;
+      let expense = 0;
+      state.transactions.forEach(t => {
+        if (t.type === 'income') income += Number(t.amount);
+        if (t.type === 'expense') expense += Number(t.amount);
+      });
+      const balance = 9590000 + (income - expense); // Base balance + net
+      const remainingBudget = Math.max(6000000 - expense, 0);
+
+      document.getElementById('total-balance').innerText = formatRupiah(balance);
+      document.getElementById('total-income').innerText = formatRupiah(income);
+      document.getElementById('total-expense').innerText = formatRupiah(expense);
+      document.getElementById('remaining-budget').innerText = formatRupiah(remainingBudget);
+    }
+
+    function renderRecentTransactions() {
+      const tbody = document.getElementById('recent-transactions-tbody');
+      tbody.innerHTML = '';
+      const recent = [...state.transactions].reverse().slice(0, 5);
+
+      recent.forEach(t => {
+        const isExpense = t.type === 'expense';
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition';
+        tr.innerHTML = `
+          <td class="py-3 font-semibold text-gray-800 dark:text-gray-200">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full ${isExpense ? 'bg-rose-500' : 'bg-emerald-500'}"></span>
+              <div>
+                <p class="text-xs font-bold text-gray-900 dark:text-white">${t.note}</p>
+                <p class="text-[11px] text-gray-500 dark:text-gray-400">${t.category}</p>
+              </div>
+            </div>
+          </td>
+          <td class="py-3 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">${t.date}</td>
+          <td class="py-3 font-bold text-right tabular-nums whitespace-nowrap ${isExpense ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}">
+            ${isExpense ? '-' : '+'} ${formatRupiah(t.amount)}
+          </td>
+          <td class="py-3 text-center">
+            <button onclick="deleteTransaction('${t.id}')" class="p-1.5 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950 transition" title="Hapus">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderAllTransactions() {
+      const tbody = document.getElementById('all-transactions-tbody');
+      tbody.innerHTML = '';
+      const list = [...state.transactions].reverse().filter(t => {
+        if (state.currentFilter === 'all') return true;
+        return t.type === state.currentFilter;
+      });
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-xs text-gray-400">Tidak ada transaksi ditemukan.</td></tr>`;
+        return;
+      }
+
+      list.forEach(t => {
+        const isExpense = t.type === 'expense';
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition';
+        tr.innerHTML = `
+          <td class="py-3 font-bold text-gray-800 dark:text-gray-200 text-xs">
+            <span class="px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-[11px]">${t.category}</span>
+          </td>
+          <td class="py-3 text-xs text-gray-700 dark:text-gray-300 font-medium">${t.note}</td>
+          <td class="py-3 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">${t.date}</td>
+          <td class="py-3 font-bold text-right tabular-nums whitespace-nowrap text-xs ${isExpense ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}">
+            ${isExpense ? '-' : '+'} ${formatRupiah(t.amount)}
+          </td>
+          <td class="py-3 text-center">
+            <button onclick="deleteTransaction('${t.id}')" class="p-1 rounded-lg text-gray-400 hover:text-rose-600 transition" title="Hapus">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderBudgets() {
+      const container = document.getElementById('budgets-container');
+      container.innerHTML = '';
+
+      BUDGETS.forEach(b => {
+        let spent = 0;
+        state.transactions.forEach(t => {
+          if (t.type === 'expense' && t.category === b.category) spent += Number(t.amount);
+        });
+        const pct = Math.min(Math.round((spent / b.limit) * 100), 100);
+        const isOver = spent > b.limit;
+
+        const card = document.createElement('div');
+        card.className = 'rounded-2xl border border-gray-100 dark:border-gray-800/80 p-4 bg-gray-50/50 dark:bg-gray-800/30';
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-gray-900 dark:text-white">${b.category}</span>
+            <span class="text-xs font-extrabold ${isOver ? 'text-rose-600' : 'text-primary-600'}">${pct}%</span>
+          </div>
+          <div class="mt-2 text-xs text-gray-500 dark:text-gray-400 flex justify-between font-semibold">
+            <span>Terpakai: ${formatRupiah(spent)}</span>
+            <span>Batas: ${formatRupiah(b.limit)}</span>
+          </div>
+          <div class="mt-2.5 h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+            <div class="h-full rounded-full transition-all duration-500 ${isOver ? 'bg-rose-500' : 'bg-primary-500'}" style="width: ${pct}%"></div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function updateCharts() {
+      // Category Breakdown
+      const catTotals = {};
+      state.transactions.filter(t => t.type === 'expense').forEach(t => {
+        catTotals[t.category] = (catTotals[t.category] || 0) + Number(t.amount);
+      });
+      const catLabels = Object.keys(catTotals);
+      const catData = Object.values(catTotals);
+
+      const ctxCat = document.getElementById('categoryChart').getContext('2d');
+      if (state.chartCategory) state.chartCategory.destroy();
+      state.chartCategory = new Chart(ctxCat, {
+        type: 'doughnut',
+        data: {
+          labels: catLabels.length ? catLabels : ['Belum ada'],
+          datasets: [{
+            data: catData.length ? catData : [1],
+            backgroundColor: ['#0d9488', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+          },
+          cutout: '70%'
+        }
+      });
+
+      // Cashflow weekly
+      const ctxCash = document.getElementById('cashflowChart').getContext('2d');
+      if (state.chartCashflow) state.chartCashflow.destroy();
+      state.chartCashflow = new Chart(ctxCash, {
+        type: 'bar',
+        data: {
+          labels: ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'],
+          datasets: [
+            {
+              label: 'Pemasukan',
+              data: [8500000, 0, 0, 0],
+              backgroundColor: '#10b981',
+              borderRadius: 6
+            },
+            {
+              label: 'Pengeluaran',
+              data: [850000, 215000, 1945000, 230000],
+              backgroundColor: '#f43f5e',
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+          },
+          scales: {
+            y: { ticks: { font: { size: 9 }, callback: (v) => 'Rp ' + (v/1000000) + 'jt' } },
+            x: { ticks: { font: { size: 10 } } }
+          }
+        }
+      });
+    }
+
+    function refreshAll() {
+      localStorage.setItem('memfinance_demo_tx', JSON.stringify(state.transactions));
+      calculateMetrics();
+      renderRecentTransactions();
+      renderAllTransactions();
+      renderBudgets();
+      updateCharts();
+    }
+
+    function filterTransactions(filter) {
+      state.currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        if (btn.getAttribute('data-filter') === filter) {
+          btn.className = 'filter-btn active px-3 py-1.5 rounded-lg text-xs font-bold bg-primary-600 text-white';
+        } else {
+          btn.className = 'filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400';
+        }
+      });
+      renderAllTransactions();
+    }
+
+    function deleteTransaction(id) {
+      state.transactions = state.transactions.filter(t => t.id !== id);
+      showToast('Transaksi berhasil dihapus');
+      refreshAll();
+    }
+
+    function openModal(defaultType = 'expense') {
+      setModalType(defaultType);
+      document.getElementById('form-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
+      document.getElementById('tx-form').reset();
+    }
+
+    function setModalType(type) {
+      document.getElementById('modal-type').value = type;
+      const btnExp = document.getElementById('type-btn-expense');
+      const btnInc = document.getElementById('type-btn-income');
+      if (type === 'expense') {
+        btnExp.className = 'py-2 text-xs font-extrabold rounded-lg bg-white dark:bg-gray-700 text-rose-600 dark:text-rose-300 shadow-xs transition';
+        btnInc.className = 'py-2 text-xs font-extrabold rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 transition';
+      } else {
+        btnInc.className = 'py-2 text-xs font-extrabold rounded-lg bg-white dark:bg-gray-700 text-emerald-600 dark:text-emerald-300 shadow-xs transition';
+        btnExp.className = 'py-2 text-xs font-extrabold rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 transition';
+      }
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const type = document.getElementById('modal-type').value;
+      const amount = Number(document.getElementById('form-amount').value);
+      const category = document.getElementById('form-category').value;
+      const note = document.getElementById('form-note').value;
+      const date = document.getElementById('form-date').value || new Date().toISOString().split('T')[0];
+
+      if (!amount || amount <= 0) {
+        showToast('Nominal transaksi tidak boleh kosong', 'error');
+        return;
+      }
+
+      state.transactions.push({
+        id: String(Date.now()),
+        type,
+        category,
+        amount,
+        note,
+        date
+      });
+
+      showToast('Transaksi berhasil ditambahkan!');
+      closeModal();
+      refreshAll();
+    }
+
+    function exportCSV() {
+      const headers = ['ID', 'Tipe', 'Kategori', 'Nominal', 'Catatan', 'Tanggal'];
+      const rows = state.transactions.map(t => [t.id, t.type, t.category, t.amount, `"${t.note}"`, t.date]);
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `memfinance_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      showToast('Data CSV berhasil diunduh!');
+    }
+
+    function resetToInitialData() {
+      state.transactions = JSON.parse(JSON.stringify(INITIAL_TRANSACTIONS));
+      showToast('Data demo berhasil direset ke awal');
+      refreshAll();
+    }
+
+    // AI Chat & Parser Simulation
+    function fillChatInput(text) {
+      document.getElementById('chat-input').value = text;
+      document.getElementById('chat-input').focus();
+    }
+
+    function handleChatSubmit() {
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      appendChatMessage(text, 'user');
+      input.value = '';
+
+      // AI Heuristic parse
+      setTimeout(() => {
+        const parsed = parseTextToTx(text);
+        if (parsed) {
+          const aiResponse = `Saya mendeteksi transaksi: <b>${parsed.category}</b> sebesar <b>${formatRupiah(parsed.amount)}</b> dengan catatan "<i>${parsed.note}</i>".`;
+          appendChatMessage(aiResponse, 'ai', parsed);
+        } else {
+          appendChatMessage('Saya belum dapat mengenali nominal dari kalimat Anda. Coba contoh: "Beli bensin 50000".', 'ai');
+        }
+      }, 500);
+    }
+
+    function parseTextToTx(text) {
+      const lower = text.toLowerCase();
+      // Match amount
+      let amount = null;
+      const kMatch = lower.match(/(\d+)\s*(rb|k|ribu)/);
+      const numMatch = lower.match(/(?:rp\.?|idr)?\s*([\d.]+)/);
+
+      if (kMatch) {
+        amount = parseInt(kMatch[1], 10) * 1000;
+      } else if (numMatch) {
+        amount = parseInt(numMatch[1].replace(/\./g, ''), 10);
+      }
+
+      if (!amount || isNaN(amount)) return null;
+
+      let category = 'Makanan & Minuman';
+      let type = 'expense';
+
+      if (lower.includes('gaji') || lower.includes('proyek') || lower.includes('pemasukan') || lower.includes('honor')) {
+        category = 'Gaji';
+        type = 'income';
+      } else if (lower.includes('bensin') || lower.includes('krl') || lower.includes('ojek') || lower.includes('transport') || lower.includes('parkir')) {
+        category = 'Transportasi';
+      } else if (lower.includes('listrik') || lower.includes('wifi') || lower.includes('pulsa') || lower.includes('tagihan')) {
+        category = 'Tagihan';
+      } else if (lower.includes('baju') || lower.includes('sepatu') || lower.includes('belanja') || lower.includes('supermarket')) {
+        category = 'Belanja';
+      } else if (lower.includes('nonton') || lower.includes('bioskop') || lower.includes('game') || lower.includes('liburan')) {
+        category = 'Hiburan';
+      }
+
+      return {
+        id: String(Date.now()),
+        type,
+        category,
+        amount,
+        note: text,
+        date: new Date().toISOString().split('T')[0]
+      };
+    }
+
+    function appendChatMessage(content, sender, txToConfirm = null) {
+      const container = document.getElementById('chat-messages');
+      const isUser = sender === 'user';
+      const wrapper = document.createElement('div');
+      wrapper.className = `flex items-start gap-2.5 ${isUser ? 'justify-end' : 'justify-start'}`;
+
+      if (isUser) {
+        wrapper.innerHTML = `
+          <div class="rounded-2xl rounded-tr-sm bg-primary-600 p-3 text-xs text-white max-w-sm shadow-xs break-words">
+            ${content}
+          </div>
+        `;
+      } else {
+        let confirmHtml = '';
+        if (txToConfirm) {
+          confirmHtml = `
+            <div class="mt-2.5 p-2.5 rounded-xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800/80 flex items-center justify-between gap-2">
+              <div>
+                <p class="text-[11px] font-bold text-teal-900 dark:text-teal-200">${txToConfirm.category}: ${formatRupiah(txToConfirm.amount)}</p>
+                <p class="text-[10px] text-teal-700 dark:text-teal-400 truncate max-w-[180px]">${txToConfirm.note}</p>
+              </div>
+              <button onclick="confirmChatTx('${encodeURIComponent(JSON.stringify(txToConfirm))}', this)" class="px-2.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] shrink-0 shadow-xs transition">
+                Simpan
+              </button>
+            </div>
+          `;
+        }
+        wrapper.innerHTML = `
+          <div class="w-7 h-7 rounded-full bg-primary-600 text-white flex items-center justify-center text-xs font-bold shrink-0">AI</div>
+          <div class="rounded-2xl rounded-tl-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-3.5 text-xs text-gray-800 dark:text-gray-200 shadow-xs max-w-md">
+            ${content}
+            ${confirmHtml}
+          </div>
+        `;
+      }
+
+      container.appendChild(wrapper);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function confirmChatTx(encodedTx, btn) {
+      const tx = JSON.parse(decodeURIComponent(encodedTx));
+      state.transactions.push(tx);
+      showToast('Transaksi berhasil disimpan dari percakapan AI!');
+      btn.innerText = '✓ Tersimpan';
+      btn.disabled = true;
+      btn.className = 'px-2.5 py-1.5 rounded-lg bg-gray-400 text-white font-bold text-[11px] cursor-not-allowed';
+      refreshAll();
+    }
+
+    function handleReceiptUpload(e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      appendChatMessage(`Mengunggah gambar struk: <b>${file.name}</b>`, 'user');
+      setTimeout(() => {
+        const simulatedTx = {
+          id: String(Date.now()),
+          type: 'expense',
+          category: 'Belanja',
+          amount: 145000,
+          note: 'Struk Belanja Toko (OCR Auto-extract)',
+          date: new Date().toISOString().split('T')[0]
+        };
+        appendChatMessage(`Hasil OCR struk terdeteksi: Grand Total <b>${formatRupiah(simulatedTx.amount)}</b>.`, 'ai', simulatedTx);
+      }, 900);
+      e.target.value = '';
+    }
+
+    // Dark Mode Toggle
+    const themeBtn = document.getElementById('theme-toggle');
+    themeBtn.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('memfinance_dark_mode', isDark ? 'true' : 'false');
+    });
+
+    // Initialize State
+    (function init() {
+      const darkPref = localStorage.getItem('memfinance_dark_mode');
+      if (darkPref === 'true') {
+        document.documentElement.classList.add('dark');
+      }
+      refreshAll();
+    })();
+  </script>
+</body>
+</html>
