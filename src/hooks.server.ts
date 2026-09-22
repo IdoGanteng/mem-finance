@@ -27,8 +27,9 @@ function signForCreateSheet(userId: string): { signature: string; timestamp: num
 }
 
 async function getOrCreateGaSheetId(userId: string, email: string): Promise<string | null> {
-	const serviceRoleKey = cleanSupabaseKey(getPrivateEnv('SUPABASE_SERVICE_ROLE_KEY'));
-	const supabaseUrl = cleanSupabaseUrl(PUBLIC_SUPABASE_URL);
+	const procEnv = typeof process !== 'undefined' ? process.env : {};
+	const serviceRoleKey = cleanSupabaseKey(getPrivateEnv('SUPABASE_SERVICE_ROLE_KEY') || procEnv.SUPABASE_SERVICE_ROLE_KEY);
+	const supabaseUrl = cleanSupabaseUrl(PUBLIC_SUPABASE_URL || procEnv.PUBLIC_SUPABASE_URL || procEnv.SUPABASE_URL);
 	if (!supabaseUrl || !serviceRoleKey) {
 		console.error('[hooks] Missing Supabase URL or service role key; cannot create user profile');
 		return null;
@@ -111,8 +112,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// disabled, however, we still read an existing session so public routes can
 	// make the right UX decision (for example, sending a signed-in visitor from
 	// /login to /dashboard); only protected-route enforcement is skipped.
-	const activeUrl = cleanSupabaseUrl(PUBLIC_SUPABASE_URL);
-	const activeKey = cleanSupabaseKey(PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+	const procEnv = typeof process !== 'undefined' ? process.env : {};
+	const activeUrl = cleanSupabaseUrl(PUBLIC_SUPABASE_URL || procEnv.PUBLIC_SUPABASE_URL || procEnv.SUPABASE_URL);
+	const activeKey = cleanSupabaseKey(PUBLIC_SUPABASE_PUBLISHABLE_KEY || procEnv.PUBLIC_SUPABASE_PUBLISHABLE_KEY || procEnv.SUPABASE_PUBLISHABLE_KEY || procEnv.SUPABASE_ANON_KEY);
 	if (!activeUrl || !activeKey) {
 		const devUser = getDevUser();
 		event.locals.userId = devUser.id;

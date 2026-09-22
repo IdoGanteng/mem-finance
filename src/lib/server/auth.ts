@@ -4,8 +4,9 @@ import type { RequestEvent } from '@sveltejs/kit';
 import { cleanSupabaseUrl, cleanSupabaseKey } from '$lib/supabase-config';
 
 export function createSupabaseServerClient(event: RequestEvent) {
-	const url = cleanSupabaseUrl(PUBLIC_SUPABASE_URL);
-	const key = cleanSupabaseKey(PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+	const procEnv = typeof process !== 'undefined' ? process.env : {};
+	const url = cleanSupabaseUrl(PUBLIC_SUPABASE_URL || procEnv.PUBLIC_SUPABASE_URL || procEnv.SUPABASE_URL);
+	const key = cleanSupabaseKey(PUBLIC_SUPABASE_PUBLISHABLE_KEY || procEnv.PUBLIC_SUPABASE_PUBLISHABLE_KEY || procEnv.SUPABASE_PUBLISHABLE_KEY || procEnv.SUPABASE_ANON_KEY);
 
 	return createServerClient(
 		url,

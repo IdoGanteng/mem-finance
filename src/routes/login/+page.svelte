@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { fade, fly } from 'svelte/transition';
+	import { enhance } from '$app/forms';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_TURNSTILE_SITE_KEY } from '$env/static/public';
 	import { createBrowserClient } from '@supabase/ssr';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -261,11 +262,28 @@
 
 				{#if authMethod === 'password'}
 					<!-- Form Password -->
-					<form onsubmit={(e) => { e.preventDefault(); handlePasswordLogin(); }} class="space-y-4">
+					<form
+						method="POST"
+						use:enhance={() => {
+							loading = true;
+							error = '';
+							return async ({ result }) => {
+								loading = false;
+								if (result.type === 'failure') {
+									const resData = result.data as { error?: string } | undefined;
+									error = resData?.error || 'Password salah atau login gagal.';
+								} else if (result.type === 'redirect') {
+									window.location.href = result.location;
+								}
+							};
+						}}
+						class="space-y-4"
+					>
 						<div>
 							<label for="login-email" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Email Anda</label>
 							<input
 								id="login-email"
+								name="email"
 								type="email"
 								placeholder="aldianridhoku@gmail.com"
 								bind:value={email}
@@ -280,6 +298,7 @@
 							<div class="relative">
 								<input
 									id="login-password"
+									name="password"
 									type={showPassword ? 'text' : 'password'}
 									placeholder="Masukkan password Anda"
 									bind:value={password}
