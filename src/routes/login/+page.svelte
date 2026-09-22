@@ -1,15 +1,18 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { fade } from 'svelte/transition';
-	import { fly } from 'svelte/transition';
+	import { fade, fly } from 'svelte/transition';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_TURNSTILE_SITE_KEY } from '$env/static/public';
 	import { createBrowserClient } from '@supabase/ssr';
 	import Button from '$lib/components/ui/Button.svelte';
 
 	let supabaseConfigured = $state(!!PUBLIC_SUPABASE_URL && !!PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 
+	let authMethod = $state<'password' | 'otp'>('password');
 	let step = $state<'email' | 'otp'>('email');
 	let email = $state('aldianridhoku@gmail.com');
+	let password = $state('');
+	let showPassword = $state(false);
+
 	let otpDigits = $state(['', '', '', '', '', '']);
 	let captchaToken = $state('');
 	let loading = $state(false);
@@ -63,6 +66,32 @@
 		}
 	});
 
+	async function handlePasswordLogin() {
+		if (!emailValid || !password || loading || !supabase) return;
+		resetError();
+		loading = true;
+
+		const { data, error: signInError } = await supabase.auth.signInWithPassword({
+			email,
+			password
+		});
+
+		loading = false;
+
+		if (signInError) {
+			if (signInError.message?.includes('Invalid login credentials')) {
+				error = 'Password salah atau email tidak terdaftar.';
+			} else {
+				error = signInError.message;
+			}
+			return;
+		}
+
+		if (data?.session) {
+			window.location.href = '/dashboard';
+		}
+	}
+
 	async function handleSendOtp() {
 		if (!canSubmitEmail || !supabase) return;
 		resetError();
@@ -82,7 +111,7 @@
 			if (sendError.status === 429) {
 				error = 'Terlalu banyak permintaan. Coba lagi nanti.';
 			} else {
-				error = 'Gagal mengirim kode OTP. Periksa koneksi dan coba lagi.';
+				error = 'Gagal mengirim kode OTP: ' + sendError.message;
 			}
 			resetCaptcha();
 			return;
@@ -168,19 +197,6 @@
 		handleSendOtp();
 	}
 
-	async function handleGoogleLogin() {
-		if (loading || !supabase) return;
-		loading = true;
-		const { error: oauthError } = await supabase.auth.signInWithOAuth({
-			provider: 'google',
-			options: { redirectTo: `${window.location.origin}/auth/callback` }
-		});
-		if (oauthError) {
-			error = 'Gagal login dengan Google. Periksa koneksi.';
-			loading = false;
-		}
-	}
-
 	function handleBack() {
 		step = 'email';
 		otpDigits = ['', '', '', '', '', ''];
@@ -191,119 +207,176 @@
 
 <svelte:head><title>Login — MemFinance</title></svelte:head>
 
-
 <div class="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#f8faf8] p-4 dark:bg-gray-950">
 	<div class="absolute -left-24 top-0 h-72 w-72 rounded-full bg-primary-100/70 blur-3xl dark:bg-primary-950/40" aria-hidden="true"></div>
 	<div class="relative w-full max-w-md" transition:fade={{ duration: 180 }}>
 		<div class="mb-7 text-center" transition:fly={{ y: -8, duration: 220 }}>
-			<a href="/" class="inline-flex items-center gap-2 text-xl font-bold tracking-tight text-gray-950 dark:text-white"><span class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-600 text-white" aria-hidden="true"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 19V7l7-3 7 3v12l-7 3-7-3Z" /><path d="M8 9h8M8 13h5" /></svg></span>MemFinance</a>
-			<p class="mt-3 text-sm text-gray-600 dark:text-gray-400">Masuk untuk melanjutkan pencatatan Anda.</p>
+			<a href="/" class="inline-flex items-center gap-2 text-xl font-bold tracking-tight text-gray-950 dark:text-white">
+				<span class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-600 text-white shadow-sm" aria-hidden="true">
+					<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M5 19V7l7-3 7 3v12l-7 3-7-3Z" />
+						<path d="M8 9h8M8 13h5" />
+					</svg>
+				</span>
+				MemFinance
+			</a>
+			<p class="mt-3 text-sm text-gray-600 dark:text-gray-400">Portal Keuangan Pribadi yang Aman & Rahasia</p>
 		</div>
 
 		{#if !supabaseConfigured}
 			<div class="space-y-3 rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm dark:border-gray-800 dark:bg-gray-900">
 				<p class="text-sm font-semibold text-gray-900 dark:text-gray-100">Autentikasi belum dikonfigurasi</p>
-				<p class="text-xs text-gray-500 dark:text-gray-400">Gunakan mode lokal tanpa koneksi Supabase.</p>
-				<a
-					href="/dashboard"
-					class="mt-2 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 text-sm font-semibold text-white transition hover:bg-primary-700"
-				>
-					Lanjut ke Dashboard (Mode Lokal) →
-				</a>
+				<p class="text-xs text-gray-500 dark:text-gray-400">Silakan konfigurasikan kunci Supabase di file .env.</p>
 			</div>
 		{:else}
-
-		<div class="space-y-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-xl shadow-gray-200/60 sm:p-7 dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/20">
-			<div><h1 class="text-xl font-bold tracking-tight text-gray-950 dark:text-white">Selamat datang</h1><p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Pilih cara yang paling nyaman untuk masuk.</p></div>
-			<button
-				onclick={handleGoogleLogin}
-				disabled={loading}
-				class="flex min-h-11 w-full items-center justify-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500/30 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-			>
-				<svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/><path fill="none" d="M1 1h22v22H1z"/></svg>
-				{loading ? 'Memproses...' : 'Login dengan Google'}
-			</button>
-
-			<a
-				href="/dashboard"
-				class="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50/80 px-4 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-700 dark:bg-gray-800/60 dark:text-gray-300 dark:hover:bg-gray-800"
-			>
-				<svg class="size-4 shrink-0 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-				Bypass Login (Lanjut ke Dashboard)
-			</a>
-
-			<div class="flex items-center gap-3">
-				<hr class="flex-1 border-gray-200 dark:border-gray-700" />
-				<span class="text-xs text-gray-400">atau</span>
-				<hr class="flex-1 border-gray-200 dark:border-gray-700" />
-			</div>
-
-			{#if step === 'email'}
-				<div class="space-y-3">
-					<div>
-						<label for="login-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-						<input
-							id="login-email"
-							type="email"
-							placeholder="anda@email.com"
-							bind:value={email}
-							oninput={resetError}
-							class="min-h-11 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-colors placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
-						/>
-					</div>
-					<div id="turnstile-widget" class="flex justify-center"></div>
-					{#if error}
-						<p class="text-xs text-red-500" transition:fade>{error}</p>
-					{/if}
-					<Button variant="primary" class="w-full" onclick={handleSendOtp} disabled={!canSubmitEmail} loading={loading}>
-						{loading ? 'Mengirim...' : 'Lanjutkan'}
-					</Button>
+			<div class="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-xl shadow-gray-200/60 sm:p-8 dark:border-gray-800 dark:bg-gray-900 dark:shadow-black/20">
+				<div>
+					<h1 class="text-xl font-bold tracking-tight text-gray-950 dark:text-white">Selamat datang kembali</h1>
+					<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+						Hanya akun terdaftar (<span class="font-medium text-primary-600 dark:text-primary-400">aldianridhoku@gmail.com</span>) yang dapat mengakses.
+					</p>
 				</div>
-			{:else}
-				<div class="space-y-4" transition:fly={{ y: 10, duration: 200 }}>
-					{#if successMessage}
-						<p class="text-sm text-green-600 dark:text-green-400 text-center" transition:fade>{successMessage}</p>
-					{/if}
-					<div>
-						<p id="otp-label" class="mb-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300">Masukkan 6 digit kode OTP</p>
-						<div class="flex justify-center gap-1 sm:gap-2">
-							{#each otpDigits as _, i}
-								<input
-									id="otp-{i}"
-									type="text"
-									inputmode="numeric"
-									maxlength="1"
-									value={otpDigits[i]}
-									oninput={(e) => handleOtpInput(i, e)}
-									onkeydown={(e) => handleOtpKeydown(i, e)}
-									aria-label="Digit OTP {i + 1}" aria-describedby="otp-label" class="h-11 w-9 max-w-12 rounded-xl border border-gray-300 bg-white text-center text-base font-bold text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 sm:h-14 sm:w-12 sm:text-lg"
-								/>
-							{/each}
+
+				<!-- Tab Pemilihan Metode Login -->
+				<div class="flex rounded-xl bg-gray-100 p-1 dark:bg-gray-800 text-xs font-semibold">
+					<button
+						type="button"
+						onclick={() => { authMethod = 'password'; resetError(); }}
+						class="flex-1 rounded-lg py-2 transition {authMethod === 'password' ? 'bg-white text-gray-950 shadow-sm dark:bg-gray-700 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'}"
+					>
+						🔑 Password Akun
+					</button>
+					<button
+						type="button"
+						onclick={() => { authMethod = 'otp'; resetError(); }}
+						class="flex-1 rounded-lg py-2 transition {authMethod === 'otp' ? 'bg-white text-gray-950 shadow-sm dark:bg-gray-700 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'}"
+					>
+						✉️ Kode OTP Email
+					</button>
+				</div>
+
+				{#if authMethod === 'password'}
+					<!-- Form Password -->
+					<form onsubmit={(e) => { e.preventDefault(); handlePasswordLogin(); }} class="space-y-4">
+						<div>
+							<label for="login-email" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Email Anda</label>
+							<input
+								id="login-email"
+								type="email"
+								placeholder="aldianridhoku@gmail.com"
+								bind:value={email}
+								oninput={resetError}
+								class="min-h-11 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-colors placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+								required
+							/>
 						</div>
-					</div>
-					{#if error}
-						<p class="text-xs text-red-500 text-center" transition:fade>{error}</p>
-					{/if}
-					<Button variant="primary" class="w-full" onclick={handleVerifyOtp} disabled={!otpComplete || loading} loading={loading}>
-						{loading ? 'Memverifikasi...' : 'Verifikasi'}
-					</Button>
-					<div class="flex items-center justify-between text-xs">
-						<button onclick={handleBack} class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">← Kembali</button>
-						<button
-							onclick={handleResend}
-							disabled={!canResend}
-							class="text-primary-600 hover:text-primary-700 disabled:text-gray-400 disabled:cursor-not-allowed"
-						>
-							{#if resendCooldown > 0}
-								Kirim ulang ({resendCooldown}s)
-							{:else}
-								Belum terima? Kirim ulang
+
+						<div>
+							<label for="login-password" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+							<div class="relative">
+								<input
+									id="login-password"
+									type={showPassword ? 'text' : 'password'}
+									placeholder="Masukkan password Anda"
+									bind:value={password}
+									oninput={resetError}
+									class="min-h-11 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 pr-10 text-sm text-gray-900 transition-colors placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+									required
+								/>
+								<button
+									type="button"
+									onclick={() => showPassword = !showPassword}
+									class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+									tabindex="-1"
+								>
+									{#if showPassword}
+										<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" /></svg>
+									{:else}
+										<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+									{/if}
+								</button>
+							</div>
+						</div>
+
+						{#if error}
+							<p class="text-xs text-red-500" transition:fade>{error}</p>
+						{/if}
+
+						<Button variant="primary" class="w-full" type="submit" disabled={!emailValid || !password || loading} loading={loading}>
+							{loading ? 'Memverifikasi...' : 'Masuk ke Dashboard'}
+						</Button>
+					</form>
+				{:else}
+					<!-- Form OTP -->
+					{#if step === 'email'}
+						<div class="space-y-3">
+							<div>
+								<label for="login-email-otp" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+								<input
+									id="login-email-otp"
+									type="email"
+									placeholder="aldianridhoku@gmail.com"
+									bind:value={email}
+									oninput={resetError}
+									class="min-h-11 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-colors placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+								/>
+							</div>
+							<div id="turnstile-widget" class="flex justify-center"></div>
+							{#if error}
+								<p class="text-xs text-red-500" transition:fade>{error}</p>
 							{/if}
-						</button>
-					</div>
-				</div>
-			{/if}
-		</div>
-	{/if}
-</div>
+							<Button variant="primary" class="w-full" onclick={handleSendOtp} disabled={!canSubmitEmail} loading={loading}>
+								{loading ? 'Mengirim...' : 'Kirim Kode OTP'}
+							</Button>
+						</div>
+					{:else}
+						<div class="space-y-4" transition:fly={{ y: 10, duration: 200 }}>
+							{#if successMessage}
+								<p class="text-sm text-green-600 dark:text-green-400 text-center" transition:fade>{successMessage}</p>
+							{/if}
+							<div>
+								<p id="otp-label" class="mb-3 text-center text-xs font-medium text-gray-700 dark:text-gray-300">Masukkan 6 digit kode OTP</p>
+								<div class="flex justify-center gap-1 sm:gap-2">
+									{#each otpDigits as _, i}
+										<input
+											id="otp-{i}"
+											type="text"
+											inputmode="numeric"
+											maxlength="1"
+											value={otpDigits[i]}
+											oninput={(e) => handleOtpInput(i, e)}
+											onkeydown={(e) => handleOtpKeydown(i, e)}
+											aria-label="Digit OTP {i + 1}"
+											class="h-11 w-9 max-w-12 rounded-xl border border-gray-300 bg-white text-center text-base font-bold text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 sm:h-14 sm:w-12 sm:text-lg"
+										/>
+									{/each}
+								</div>
+							</div>
+							{#if error}
+								<p class="text-xs text-red-500 text-center" transition:fade>{error}</p>
+							{/if}
+							<Button variant="primary" class="w-full" onclick={handleVerifyOtp} disabled={!otpComplete || loading} loading={loading}>
+								{loading ? 'Memverifikasi...' : 'Verifikasi & Masuk'}
+							</Button>
+							<div class="flex items-center justify-between text-xs">
+								<button type="button" onclick={handleBack} class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">← Kembali</button>
+								<button
+									type="button"
+									onclick={handleResend}
+									disabled={!canResend}
+									class="text-primary-600 hover:text-primary-700 disabled:text-gray-400 disabled:cursor-not-allowed"
+								>
+									{#if resendCooldown > 0}
+										Kirim ulang ({resendCooldown}s)
+									{:else}
+										Kirim ulang OTP
+									{/if}
+								</button>
+							</div>
+						</div>
+					{/if}
+				{/if}
+			</div>
+		{/if}
+	</div>
 </div>
