@@ -4,8 +4,12 @@
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_TURNSTILE_SITE_KEY } from '$env/static/public';
 	import { createBrowserClient } from '@supabase/ssr';
 	import Button from '$lib/components/ui/Button.svelte';
+	import { cleanSupabaseUrl, cleanSupabaseKey } from '$lib/supabase-config';
 
-	let supabaseConfigured = $state(!!PUBLIC_SUPABASE_URL && !!PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+	const activeUrl = cleanSupabaseUrl(PUBLIC_SUPABASE_URL);
+	const activeKey = cleanSupabaseKey(PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+
+	let supabaseConfigured = $state(!!activeUrl && !!activeKey);
 
 	let authMethod = $state<'password' | 'otp'>('password');
 	let step = $state<'email' | 'otp'>('email');
@@ -23,7 +27,7 @@
 	let turnstileWidgetId: string | undefined;
 
 	let supabase = supabaseConfigured 
-		? createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY)
+		? createBrowserClient(activeUrl, activeKey)
 		: null;
 
 	let emailValid = $derived(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));

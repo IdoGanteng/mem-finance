@@ -1,11 +1,15 @@
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY } from '$env/static/public';
 import { createServerClient } from '@supabase/ssr';
 import type { RequestEvent } from '@sveltejs/kit';
+import { cleanSupabaseUrl, cleanSupabaseKey } from '$lib/supabase-config';
 
 export function createSupabaseServerClient(event: RequestEvent) {
+	const url = cleanSupabaseUrl(PUBLIC_SUPABASE_URL);
+	const key = cleanSupabaseKey(PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+
 	return createServerClient(
-		PUBLIC_SUPABASE_URL,
-		PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+		url,
+		key,
 		{
 			cookies: {
 				getAll() {
@@ -17,10 +21,6 @@ export function createSupabaseServerClient(event: RequestEvent) {
 				},
 				setAll(cookiesToSet) {
 					for (const { name, value, options } of cookiesToSet) {
-						// Supabase SSR supplies cookie options that its browser client
-						// must be able to read and refresh. Overriding these (notably
-						// with `httpOnly: true` or `secure: true` on localhost) prevents
-						// the server and browser from observing the same session.
 						event.cookies.set(name, value, {
 							...options,
 							path: options.path ?? '/'

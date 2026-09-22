@@ -5,6 +5,8 @@ import { env as privateEnv } from '$env/dynamic/private';
 import { createClient } from '@supabase/supabase-js';
 import { createHmac } from 'node:crypto';
 
+import { cleanSupabaseUrl, cleanSupabaseKey } from '$lib/supabase-config';
+
 if (typeof globalThis !== 'undefined' && !globalThis.WebSocket) {
 	globalThis.WebSocket = class {} as unknown as typeof WebSocket;
 }
@@ -25,14 +27,15 @@ function signForCreateSheet(userId: string): { signature: string; timestamp: num
 }
 
 async function getOrCreateGaSheetId(userId: string, email: string): Promise<string | null> {
-	const serviceRoleKey = getPrivateEnv('SUPABASE_SERVICE_ROLE_KEY');
-	if (!PUBLIC_SUPABASE_URL || !serviceRoleKey) {
+	const serviceRoleKey = cleanSupabaseKey(getPrivateEnv('SUPABASE_SERVICE_ROLE_KEY'));
+	const supabaseUrl = cleanSupabaseUrl(PUBLIC_SUPABASE_URL);
+	if (!supabaseUrl || !serviceRoleKey) {
 		console.error('[hooks] Missing Supabase URL or service role key; cannot create user profile');
 		return null;
 	}
 
 	try {
-		const adminClient = createClient(PUBLIC_SUPABASE_URL, serviceRoleKey, {
+		const adminClient = createClient(supabaseUrl, serviceRoleKey, {
 			auth: {
 				persistSession: false,
 				autoRefreshToken: false,
@@ -108,7 +111,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// disabled, however, we still read an existing session so public routes can
 	// make the right UX decision (for example, sending a signed-in visitor from
 	// /login to /dashboard); only protected-route enforcement is skipped.
-	if (!PUBLIC_SUPABASE_URL || !PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+	const activeUrl = cleanSupabaseUrl(PUBLIC_SUPABASE_URL);
+	const activeKey = cleanSupabaseKey(PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+	if (!activeUrl || !activeKey) {
 		const devUser = getDevUser();
 		event.locals.userId = devUser.id;
 		event.locals.user = devUser as unknown as import('@supabase/supabase-js').User;
