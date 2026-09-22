@@ -582,7 +582,7 @@
 </script>
 
 <svelte:window onclick={handleWindowClick} onkeydown={handleWindowKeydown} />
-<svelte:head><title>Chat — MemFinance</title></svelte:head>
+<svelte:head><title>Chat — Finari</title></svelte:head>
 
 {#if cameraOpen}
 	<div class="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0 backdrop-blur-sm sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="camera-capture-title" transition:fade={{ duration: 140 }}>

@@ -41,7 +41,7 @@ export async function exportCSV(): Promise<{ count: number }> {
 	const url = URL.createObjectURL(blob);
 	const a = document.createElement('a');
 	a.href = url;
-	a.download = `memfinance-transaksi-${new Date().toISOString().split('T')[0]}.csv`;
+	a.download = `finari-transaksi-${new Date().toISOString().split('T')[0]}.csv`;
 	a.click();
 	URL.revokeObjectURL(url);
 

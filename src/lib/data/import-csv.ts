@@ -216,6 +216,7 @@ export async function executeCSVImport(rows: ParsedRow[]): Promise<ImportReport>
 	}
 
 	report.successCount = toInsert.length;
+	window.dispatchEvent(new CustomEvent('finari-data-changed'));
 	window.dispatchEvent(new CustomEvent('memfinance-data-changed'));
 	return report;
 }

@@ -1,11 +1,11 @@
 # 🐴 Lightweight Docker Compose for VPS deployment
 services:
   app:
-    image: ghcr.io/${GITHUB_REPOSITORY:-memfinance}/app:latest
+    image: ghcr.io/${GITHUB_REPOSITORY:-finari}/app:latest
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: memfinance
+    container_name: finari
     restart: unless-stopped
     ports:
       - "127.0.0.1:3000:3000"

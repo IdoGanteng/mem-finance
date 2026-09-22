@@ -82,6 +82,7 @@ export async function executeSQLiteImport(data: SQLiteParseResult): Promise<Impo
 	await merge(STORES.CATEGORIES, data.categories);
 	await merge(STORES.BUDGETS, data.budgets);
 
+	window.dispatchEvent(new CustomEvent('finari-data-changed'));
 	window.dispatchEvent(new CustomEvent('memfinance-data-changed'));
 	return report;
 }

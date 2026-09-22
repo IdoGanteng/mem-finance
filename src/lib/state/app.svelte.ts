@@ -19,12 +19,12 @@ class AppStore {
 
 	chatMessages = $state<import('$lib/domain/entities/chat').ChatMessage[]>([]);
 
-	gmtOffset = $state(typeof localStorage !== 'undefined' ? Number(localStorage.getItem('memfinance_gmt') ?? '7') : 7);
+	gmtOffset = $state(typeof localStorage !== 'undefined' ? Number(localStorage.getItem('finari_gmt') ?? localStorage.getItem('memfinance_gmt') ?? '7') : 7);
 	pendingSync = $state(0);
 	online = $state(true);
 	toast = $state<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
 
-	sidebarCollapsed = $state(typeof localStorage !== 'undefined' ? localStorage.getItem('memfinance_sidebar_collapsed') === 'true' : false);
+	sidebarCollapsed = $state(typeof localStorage !== 'undefined' ? (localStorage.getItem('finari_sidebar_collapsed') ?? localStorage.getItem('memfinance_sidebar_collapsed')) === 'true' : false);
 	mobileSidebarOpen = $state(false);
 	user = $state<import('$lib/types/user').AppUser | import('@supabase/supabase-js').User | null>(null);
 
@@ -37,7 +37,7 @@ export const app = new AppStore();
 export function toggleSidebarCollapsed() {
 	app.sidebarCollapsed = !app.sidebarCollapsed;
 	if (typeof localStorage !== 'undefined') {
-		localStorage.setItem('memfinance_sidebar_collapsed', String(app.sidebarCollapsed));
+		localStorage.setItem('finari_sidebar_collapsed', String(app.sidebarCollapsed));
 	}
 }
 
@@ -76,7 +76,11 @@ export async function loadTransactionsFromCache(): Promise<void> {
 
 export async function loadCategoriesFromCache(): Promise<void> {
 	app.categoriesLoading = app.categories.length === 0;
-	const cached = await idb.getAll<Category>(STORES.CATEGORIES);
+	let cached = (await idb.getAll<Category>(STORES.CATEGORIES)).filter((c) => c.flagActive !== false);
+	if (cached.length === 0) {
+		const { getCategoryRepo } = await import('$lib/data/repository-factory');
+		cached = await getCategoryRepo().getAll();
+	}
 	app.categories = cached;
 	app.categoriesLoading = false;
 }

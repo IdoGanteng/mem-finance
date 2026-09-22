@@ -19,7 +19,7 @@
 		isDark = !isDark;
 		document.documentElement.classList.toggle('dark', isDark);
 		document.documentElement.classList.toggle('light', !isDark);
-		localStorage.setItem('memfinance_dark_mode', String(isDark));
+		localStorage.setItem('finari_dark_mode', String(isDark));
 	}
 
 	function isActive(href: string) {
@@ -63,7 +63,7 @@
 					<svg class="size-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16.5V8.8c0-.9.73-1.63 1.63-1.63.62 0 1.18.35 1.46.9L12 11.7l1.91-3.63a1.63 1.63 0 012.88.76v7.67M7 16.5h9.8M9.7 16.5v-2.1m4.6 2.1v-2.1" /></svg>
 				</div>
 				<div>
-					<p class="text-base font-extrabold tracking-tight text-[var(--text-primary)]">MemFinance</p>
+					<p class="text-base font-extrabold tracking-tight text-[var(--text-primary)]">Finari</p>
 					<p class="text-xs text-[var(--text-secondary)]">Keuangan lebih tenang</p>
 				</div>
 			</div>
@@ -197,7 +197,7 @@
 						<svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16.5V8.8c0-.9.73-1.63 1.63-1.63.62 0 1.18.35 1.46.9L12 11.7l1.91-3.63a1.63 1.63 0 012.88.76v7.67M7 16.5h9.8M9.7 16.5v-2.1m4.6 2.1v-2.1" /></svg>
 					</div>
 					<div>
-						<p class="text-base font-extrabold tracking-tight text-[var(--text-primary)]">MemFinance</p>
+						<p class="text-base font-extrabold tracking-tight text-[var(--text-primary)]">Finari</p>
 						<p class="text-xs text-[var(--text-secondary)]">Keuangan lebih tenang</p>
 					</div>
 				</div>

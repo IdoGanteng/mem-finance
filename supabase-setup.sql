@@ -1,5 +1,5 @@
 -- ==========================================================
--- Skrip Setup Database Supabase untuk MemFinance
+-- Skrip Setup Database Supabase untuk Finari
 -- Jalankan skrip ini di SQL Editor dashboard Supabase Anda:
 -- https://supabase.com/dashboard/project/knawnlginiulbnfobrwv/sql
 -- ==========================================================

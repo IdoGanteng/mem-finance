@@ -55,3 +55,6 @@ docs/
 
 # Graphify generated artifacts
 graphify-out/
+
+.vercel
+.env*

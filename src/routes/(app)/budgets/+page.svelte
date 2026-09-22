@@ -275,7 +275,7 @@
 	}
 </script>
 
-<svelte:head><title>Budget — MemFinance</title></svelte:head>
+<svelte:head><title>Budget — Finari</title></svelte:head>
 
 <div class="space-y-5 sm:space-y-6">
 	<header class="rounded-2xl border border-primary-100 bg-gradient-to-br from-white via-primary-50/60 to-sky-50 p-4 sm:p-6 shadow-sm dark:border-primary-900/60 dark:from-gray-900 dark:via-primary-950/40 dark:to-gray-900">

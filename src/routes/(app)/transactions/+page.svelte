@@ -188,12 +188,16 @@
 	onMount(() => {
 		load();
 		const handleOpenCreate = () => openCreate();
+		window.addEventListener('finari-open-create-transaction', handleOpenCreate);
 		window.addEventListener('memfinance-open-create-transaction', handleOpenCreate);
-		return () => window.removeEventListener('memfinance-open-create-transaction', handleOpenCreate);
+		return () => {
+			window.removeEventListener('finari-open-create-transaction', handleOpenCreate);
+			window.removeEventListener('memfinance-open-create-transaction', handleOpenCreate);
+		};
 	});
 </script>
 
-<svelte:head><title>Transaksi — MemFinance</title></svelte:head>
+<svelte:head><title>Transaksi — Finari</title></svelte:head>
 
 <div class="mx-auto max-w-5xl space-y-5 sm:space-y-7">
 	<header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">

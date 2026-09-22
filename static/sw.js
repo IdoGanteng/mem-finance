@@ -1,4 +1,4 @@
-const CACHE_NAME = 'memfinance-v2';
+const CACHE_NAME = 'finari-v1';
 const APP_SHELL = [
 	'/',
 	'/manifest.json'

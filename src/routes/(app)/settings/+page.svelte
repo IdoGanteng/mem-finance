@@ -34,7 +34,7 @@
 
 	function toggleDarkMode() {
 		darkMode = !darkMode;
-		localStorage.setItem('memfinance_dark_mode', String(darkMode));
+		localStorage.setItem('finari_dark_mode', String(darkMode));
 		document.documentElement.classList.toggle('dark', darkMode);
 		document.documentElement.classList.toggle('light', !darkMode);
 	}
@@ -43,14 +43,14 @@
 		const data: Record<string, unknown> = {};
 		for (let i = 0; i < localStorage.length; i++) {
 			const key = localStorage.key(i);
-			if (key?.startsWith('memfinance_')) {
+			if (key?.startsWith('finari_') || key?.startsWith('memfinance_')) {
 				try { data[key] = JSON.parse(localStorage.getItem(key)!); } catch { data[key] = localStorage.getItem(key); }
 			}
 		}
 		const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
-		a.href = url; a.download = 'memfinance-backup.json'; a.click();
+		a.href = url; a.download = 'finari-backup.json'; a.click();
 		URL.revokeObjectURL(url);
 		message = 'Data berhasil diekspor!';
 		setTimeout(() => message = '', 3000);
@@ -83,7 +83,7 @@
 		const keys: string[] = [];
 		for (let i = 0; i < localStorage.length; i++) {
 			const key = localStorage.key(i);
-			if (key?.startsWith('memfinance_')) keys.push(key);
+			if (key?.startsWith('finari_') || key?.startsWith('memfinance_')) keys.push(key);
 		}
 		for (const key of keys) localStorage.removeItem(key);
 		message = 'Semua data telah dihapus. Silakan refresh halaman.';
@@ -219,7 +219,7 @@
 	}
 </script>
 
-<svelte:head><title>Pengaturan — MemFinance</title></svelte:head>
+<svelte:head><title>Pengaturan — Finari</title></svelte:head>
 
 <div class="mx-auto max-w-3xl space-y-5 sm:space-y-7">
 	<header><p class="text-sm font-medium text-primary-700 dark:text-primary-300">Preferensi aplikasi</p><h1 class="mt-1 text-2xl font-bold tracking-tight text-gray-950 dark:text-white sm:text-3xl">Pengaturan</h1><p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Atur tampilan dan kelola data Anda dengan aman.</p></header>
@@ -324,7 +324,7 @@
 		<div class="p-4 sm:p-5">
 			<p class="font-medium text-gray-900 dark:text-gray-100 mb-1">Tentang</p>
 			<div class="text-sm text-gray-500 dark:text-gray-400 space-y-1">
-				<p>MemFinance v1.0.0</p>
+				<p>Finari v1.0.0</p>
 				<p>Tech Stack: SvelteKit + Bun + Tailwind CSS + Google Sheets</p>
 				<p>Chatbot: Gemini 2.0 Flash → Groq Llama 3.3 → Regex</p>
 			</div>

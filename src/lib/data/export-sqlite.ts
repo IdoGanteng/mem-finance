@@ -56,7 +56,7 @@ export async function exportSQLite(): Promise<{ count: number }> {
 	const url = URL.createObjectURL(blob);
 	const a = document.createElement('a');
 	a.href = url;
-	a.download = `memfinance-db-${new Date().toISOString().split('T')[0]}.sqlite`;
+	a.download = `finari-db-${new Date().toISOString().split('T')[0]}.sqlite`;
 	a.click();
 	URL.revokeObjectURL(url);
 	db.close();

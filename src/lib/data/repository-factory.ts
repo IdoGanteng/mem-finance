@@ -3,7 +3,7 @@ import * as idb from './idb';
 import { STORES } from './idb';
 import { addToSyncQueue } from './sync-manager';
 import type { Transaction, CreateTransactionInput, UpdateTransactionInput } from '$lib/domain/entities/transaction';
-import type { Category, CreateCategoryInput, UpdateCategoryInput } from '$lib/domain/entities/category';
+import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, type Category, type CreateCategoryInput, type UpdateCategoryInput } from '$lib/domain/entities/category';
 import type { Budget, CreateBudgetInput } from '$lib/domain/entities/budget';
 import type { ITransactionRepository } from '$lib/domain/repositories/transaction.repo';
 import type { ICategoryRepository } from '$lib/domain/repositories/category.repo';
@@ -27,6 +27,7 @@ function isFresh(m: CacheMeta): boolean {
 }
 
 function emitChange() {
+	window.dispatchEvent(new CustomEvent('finari-data-changed'));
 	window.dispatchEvent(new CustomEvent('memfinance-data-changed'));
 }
 
@@ -206,23 +207,41 @@ class IndexedDBTransactionRepository implements ITransactionRepository {
 	}
 }
 
+function buildDefaultCategories(): Category[] {
+	return [
+		...DEFAULT_EXPENSE_CATEGORIES.map((c, i) => ({
+			id: `cat_exp_${i + 1}`,
+			...c,
+			isDefault: true,
+			flagActive: true
+		})),
+		...DEFAULT_INCOME_CATEGORIES.map((c, i) => ({
+			id: `cat_inc_${i + 1}`,
+			...c,
+			isDefault: true,
+			flagActive: true
+		}))
+	];
+}
+
 class IndexedDBCategoryRepository implements ICategoryRepository {
 	async getAll(): Promise<Category[]> {
-		const cached = (await idb.getAll<Category>(STORES.CATEGORIES)).filter((c) => c.flagActive !== false);
-		if (cached.length === 0 && browser && navigator.onLine) {
-			try {
-				const fresh = await syncToGas<Category>(STORES.CATEGORIES);
-				meta.categories.lastSync = Date.now();
-				if (fresh.length > 0) return fresh;
-				return cached;
-			} catch { return cached; }
+		let cached = (await idb.getAll<Category>(STORES.CATEGORIES)).filter((c) => c.flagActive !== false);
+		if (cached.length === 0) {
+			const defaults = buildDefaultCategories();
+			await idb.bulkPut(STORES.CATEGORIES, defaults);
+			cached = defaults;
+			emitChange();
 		}
 		if (isFresh(meta.categories) || !browser) return cached;
 
 		try {
 			const fresh = await syncToGas<Category>(STORES.CATEGORIES);
 			meta.categories.lastSync = Date.now();
-			if (fresh.length > 0) return fresh;
+			if (fresh.length > 0) {
+				const active = fresh.filter((c) => c.flagActive !== false);
+				if (active.length > 0) return active;
+			}
 			return cached;
 		} catch { return cached; }
 	}

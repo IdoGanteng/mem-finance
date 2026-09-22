@@ -1,6 +1,6 @@
 {
-	"name": "MemFinance",
-	"short_name": "MemFinance",
+	"name": "Finari",
+	"short_name": "Finari",
 	"description": "Aplikasi Pengelolaan Keuangan Pribadi",
 	"start_url": "/",
 	"display": "standalone",

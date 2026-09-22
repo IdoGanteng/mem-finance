@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>MemFinance — Catatan Keuangan Pribadi Aldian Ridho</title>
-  <meta name="description" content="MemFinance - Aplikasi pencatatan keuangan personal privat & rahasia untuk Aldian Ridho.">
+  <title>Finari — Catatan Keuangan Pribadi Aldian Ridho</title>
+  <meta name="description" content="Finari - Aplikasi pencatatan keuangan personal privat & rahasia untuk Aldian Ridho.">
   <link rel="icon" href="static/icon-192.svg" type="image/svg+xml">
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -66,7 +66,7 @@
         </svg>
       </div>
       <div>
-        <h2 class="text-lg font-extrabold text-gray-950 dark:text-white">MemFinance Terkunci</h2>
+        <h2 class="text-lg font-extrabold text-gray-950 dark:text-white">Finari Terkunci</h2>
         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Data keuangan rahasia milik <b>Aldian Ridho</b></p>
       </div>
       <div>
@@ -92,7 +92,7 @@
         </div>
         <div>
           <span class="text-lg font-extrabold tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
-            MemFinance
+            Finari
             <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Privat</span>
           </span>
           <p class="text-[11px] text-gray-500 dark:text-gray-400 hidden sm:block">Buku Keuangan Rahasia &bull; Aldian Ridho</p>
@@ -766,7 +766,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `memfinance_backup_${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `finari_backup_${new Date().toISOString().split('T')[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
       showToast('File backup data pribadi berhasil diunduh!');
@@ -1085,7 +1085,7 @@
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement('a');
       link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `memfinance_aldian_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `finari_aldian_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       link.remove();

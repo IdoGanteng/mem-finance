@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
-	<title id="title">MemFinance</title>
-	<desc id="description">Ikon MemFinance dengan grafik pertumbuhan</desc>
+	<title id="title">Finari</title>
+	<desc id="description">Ikon Finari dengan grafik pertumbuhan</desc>
 	<defs>
 		<linearGradient id="surface" x1="64" y1="48" x2="448" y2="472" gradientUnits="userSpaceOnUse">
 			<stop stop-color="#14B8A6" />

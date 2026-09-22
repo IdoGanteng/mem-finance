@@ -1,6 +1,6 @@
-# MemFinance
+# Finari
 
-MemFinance adalah aplikasi pencatatan keuangan personal berbasis SvelteKit, Bun, TypeScript, Tailwind CSS, IndexedDB, dan integrasi AI. Aplikasi mendukung input transaksi lewat chat, dashboard, budget, kategori, import/export data, serta fitur Receipt OCR untuk membaca struk dari gambar.
+Finari adalah aplikasi pencatatan keuangan personal berbasis SvelteKit, Bun, TypeScript, Tailwind CSS, IndexedDB, dan integrasi AI. Aplikasi mendukung input transaksi lewat chat, dashboard, budget, kategori, import/export data, serta fitur Receipt OCR untuk membaca struk dari gambar.
 
 ## Tech Stack
 

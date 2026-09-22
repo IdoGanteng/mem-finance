@@ -46,12 +46,16 @@
 			loadTransactionsFromCache();
 			loadCategoriesFromCache();
 		}
+		window.addEventListener('finari-data-changed', onDataChange);
 		window.addEventListener('memfinance-data-changed', onDataChange);
-		return () => window.removeEventListener('memfinance-data-changed', onDataChange);
+		return () => {
+			window.removeEventListener('finari-data-changed', onDataChange);
+			window.removeEventListener('memfinance-data-changed', onDataChange);
+		};
 	});
 </script>
 
-<svelte:head><title>Dashboard — MemFinance</title></svelte:head>
+<svelte:head><title>Dashboard — Finari</title></svelte:head>
 
 <div class="space-y-5 sm:space-y-6">
 	<header class="rounded-2xl border border-primary-100 bg-gradient-to-br from-white via-primary-50/70 to-sky-50 p-4 sm:p-6 shadow-sm dark:border-primary-900/60 dark:from-gray-900 dark:via-primary-950/40 dark:to-gray-900">

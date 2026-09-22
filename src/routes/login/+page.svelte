@@ -210,7 +210,7 @@
 	}
 </script>
 
-<svelte:head><title>Login — MemFinance</title></svelte:head>
+<svelte:head><title>Login — Finari</title></svelte:head>
 
 <div class="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#f8faf8] p-4 dark:bg-gray-950">
 	<div class="absolute -left-24 top-0 h-72 w-72 rounded-full bg-primary-100/70 blur-3xl dark:bg-primary-950/40" aria-hidden="true"></div>
@@ -223,7 +223,7 @@
 						<path d="M8 9h8M8 13h5" />
 					</svg>
 				</span>
-				MemFinance
+				Finari
 			</a>
 			<p class="mt-3 text-sm text-gray-600 dark:text-gray-400">Portal Keuangan Pribadi yang Aman & Rahasia</p>
 		</div>

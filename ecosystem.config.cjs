@@ -1,7 +1,7 @@
 // 🐴 PM2 config for VPS deployment
 module.exports = {
 	apps: [{
-		name: 'memfinance',
+		name: 'finari',
 		script: 'build/index.js',
 		env: {
 			PORT: 3000,

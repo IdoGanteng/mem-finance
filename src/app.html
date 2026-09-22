@@ -7,13 +7,13 @@
 		<meta name="theme-color" content="#0f766e" />
 		<meta name="mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="default" />
-		<meta name="apple-mobile-web-app-title" content="MemFinance" />
+		<meta name="apple-mobile-web-app-title" content="Finari" />
 		<link rel="manifest" href="%sveltekit.assets%/manifest.json" />
 		<link rel="icon" href="%sveltekit.assets%/icon-192.svg" type="image/svg+xml" />
 		%sveltekit.head%
 		<script>
 			(function() {
-				const stored = localStorage.getItem('memfinance_dark_mode');
+				const stored = localStorage.getItem('finari_dark_mode') || localStorage.getItem('memfinance_dark_mode');
 				if (stored === 'true') {
 					document.documentElement.classList.add('dark');
 					document.documentElement.classList.remove('light');

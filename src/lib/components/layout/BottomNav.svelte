@@ -20,7 +20,7 @@
 		isDark = !isDark;
 		document.documentElement.classList.toggle('dark', isDark);
 		document.documentElement.classList.toggle('light', !isDark);
-		localStorage.setItem('memfinance_dark_mode', String(isDark));
+		localStorage.setItem('finari_dark_mode', String(isDark));
 	}
 
 	function isActive(href: string) {
@@ -40,7 +40,7 @@
 			<div class="mb-4 flex items-center justify-between">
 				<div>
 					<p class="text-base font-bold text-[var(--text-primary)]">Lainnya</p>
-					<p class="mt-0.5 text-sm text-[var(--text-secondary)]">Atur cara MemFinance bekerja untuk Anda.</p>
+					<p class="mt-0.5 text-sm text-[var(--text-secondary)]">Atur cara Finari bekerja untuk Anda.</p>
 				</div>
 				<button class="grid size-11 place-items-center rounded-xl text-[var(--text-secondary)] hover:bg-[var(--surface-2)]" onclick={closeMore} aria-label="Tutup menu">
 					<svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12" /></svg>
@@ -81,6 +81,7 @@
 			onclick={(e) => {
 				if ($page.url.pathname === '/transactions') {
 					e.preventDefault();
+					window.dispatchEvent(new CustomEvent('finari-open-create-transaction'));
 					window.dispatchEvent(new CustomEvent('memfinance-open-create-transaction'));
 				}
 			}}

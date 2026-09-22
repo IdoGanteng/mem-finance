@@ -21,12 +21,12 @@ export function fromDateTimeLocalValue(value: string): string | undefined {
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
-let _gmtOffset = typeof localStorage !== 'undefined' ? Number(localStorage.getItem('memfinance_gmt') ?? '7') : 7;
+let _gmtOffset = typeof localStorage !== 'undefined' ? Number(localStorage.getItem('finari_gmt') ?? localStorage.getItem('memfinance_gmt') ?? '7') : 7;
 
 export function setGmtOffset(offset: number) {
 	_gmtOffset = offset;
 	if (typeof localStorage !== 'undefined') {
-		localStorage.setItem('memfinance_gmt', String(offset));
+		localStorage.setItem('finari_gmt', String(offset));
 	}
 }
 

@@ -1,4 +1,5 @@
-const DB_NAME = 'memfinance_db';
+const DB_NAME = 'finari_db';
+const OLD_DB_NAME = 'memfinance_db';
 const DB_VERSION = 1;
 
 export const STORES = {
@@ -10,12 +11,49 @@ export const STORES = {
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
+function migrateOldDatabase(targetDb: IDBDatabase) {
+	if (typeof window === 'undefined' || !window.indexedDB) return;
+	try {
+		const migratedKey = 'finari_migrated_from_memfinance';
+		if (localStorage.getItem(migratedKey)) return;
+		localStorage.setItem(migratedKey, 'true');
+
+		const oldReq = indexedDB.open(OLD_DB_NAME, 1);
+		oldReq.onsuccess = () => {
+			const oldDb = oldReq.result;
+			const stores = [STORES.TRANSACTIONS, STORES.CATEGORIES, STORES.BUDGETS];
+			for (const s of stores) {
+				if (oldDb.objectStoreNames.contains(s) && targetDb.objectStoreNames.contains(s)) {
+					const txOld = oldDb.transaction(s, 'readonly');
+					const getAllReq = txOld.objectStore(s).getAll();
+					getAllReq.onsuccess = () => {
+						const records = getAllReq.result;
+						if (Array.isArray(records) && records.length > 0) {
+							const txNew = targetDb.transaction(s, 'readwrite');
+							const newStore = txNew.objectStore(s);
+							for (const rec of records) {
+								newStore.put(rec);
+							}
+						}
+					};
+				}
+			}
+		};
+	} catch {
+		// Ignore migration errors
+	}
+}
+
 function openDB(): Promise<IDBDatabase> {
 	if (dbPromise) return dbPromise;
 	dbPromise = new Promise((resolve, reject) => {
 		const request = indexedDB.open(DB_NAME, DB_VERSION);
 		request.onerror = () => reject(request.error);
-		request.onsuccess = () => resolve(request.result);
+		request.onsuccess = () => {
+			const db = request.result;
+			migrateOldDatabase(db);
+			resolve(db);
+		};
 		request.onupgradeneeded = (event) => {
 			const db = (event.target as IDBOpenDBRequest).result;
 			if (!db.objectStoreNames.contains(STORES.TRANSACTIONS)) {
