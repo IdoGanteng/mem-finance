@@ -120,6 +120,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const { data: userData } = await supabase.auth.getUser();
 
 	if (userData.user) {
+		const userEmail = (userData.user.email || '').toLowerCase().trim();
+		const allowedEmail = (getPrivateEnv('ALLOWED_EMAIL') || 'aldianridhoku@gmail.com').toLowerCase().trim();
+
+		// Strict access whitelist: Hanya email aldianridhoku@gmail.com yang diberikan akses
+		if (userEmail && allowedEmail && userEmail !== allowedEmail) {
+			console.warn(`[security] Akses ditolak untuk email: ${userEmail}. Hanya ${allowedEmail} yang diizinkan.`);
+			await supabase.auth.signOut();
+			throw redirect(303, '/login?error=unauthorized_email');
+		}
+
 		const userId = userData.user.id;
 		event.locals.userId = userId;
 		event.locals.user = userData.user;
@@ -140,5 +150,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	}
 
-	return resolve(event);
+	const response = await resolve(event);
+	response.headers.set('X-Frame-Options', 'DENY');
+	response.headers.set('X-Content-Type-Options', 'nosniff');
+	response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+	response.headers.set('Permissions-Policy', 'camera=(self), microphone=(), geolocation=()');
+	return response;
 };

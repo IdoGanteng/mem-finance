@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>MemFinance — Dashboard Keuangan Pribadi</title>
-  <meta name="description" content="MemFinance - Aplikasi pencatatan keuangan personal dengan dukungan AI & receipt scanner.">
+  <title>MemFinance — Catatan Keuangan Pribadi Aldian Ridho</title>
+  <meta name="description" content="MemFinance - Aplikasi pencatatan keuangan personal privat & rahasia untuk Aldian Ridho.">
   <link rel="icon" href="static/icon-192.svg" type="image/svg+xml">
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -57,6 +57,28 @@
   <!-- Toast Notification Container -->
   <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
+  <!-- PIN Lock Screen Overlay (Confidentiality Protection) -->
+  <div id="pin-lock-overlay" class="fixed inset-0 z-50 bg-gray-950/95 backdrop-blur-md flex flex-col items-center justify-center p-4 transition-all duration-300 hidden">
+    <div class="w-full max-w-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-8 text-center shadow-2xl space-y-5">
+      <div class="w-16 h-16 rounded-2xl bg-teal-600/10 text-teal-600 dark:text-teal-400 mx-auto flex items-center justify-center">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="text-lg font-extrabold text-gray-950 dark:text-white">MemFinance Terkunci</h2>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Data keuangan rahasia milik <b>Aldian Ridho</b></p>
+      </div>
+      <div>
+        <input id="unlock-pin-input" type="password" maxlength="6" inputmode="numeric" placeholder="Masukkan PIN" class="w-full text-center text-2xl font-bold tracking-widest py-3 px-4 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500/40 text-gray-900 dark:text-white">
+        <p id="unlock-error" class="text-xs text-rose-500 font-semibold mt-2 hidden">PIN salah, coba lagi.</p>
+      </div>
+      <button onclick="attemptUnlock()" class="w-full py-3 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm shadow-md shadow-primary-700/25 transition">
+        Buka Kunci Catatan
+      </button>
+    </div>
+  </div>
+
   <!-- Header Nav -->
   <header class="sticky top-0 z-40 w-full border-b border-gray-200 bg-white/90 backdrop-blur dark:border-gray-800 dark:bg-gray-900/90 transition-colors">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -71,16 +93,16 @@
         <div>
           <span class="text-lg font-extrabold tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
             MemFinance
-            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-primary-100 text-primary-800 dark:bg-primary-950 dark:text-primary-300">Live Demo</span>
+            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Privat</span>
           </span>
-          <p class="text-[11px] text-gray-500 dark:text-gray-400 hidden sm:block">Pencatatan Keuangan Personal & AI</p>
+          <p class="text-[11px] text-gray-500 dark:text-gray-400 hidden sm:block">Buku Keuangan Rahasia &bull; Aldian Ridho</p>
         </div>
       </div>
 
-      <!-- Right Actions: User Profile, Dark Mode, Repo Link -->
-      <div class="flex items-center gap-2 sm:gap-4">
+      <!-- Right Actions: User Profile, Privacy Mode, Dark Mode, Repo Link -->
+      <div class="flex items-center gap-2 sm:gap-3">
         <!-- User Badge -->
-        <div class="hidden sm:flex items-center gap-2.5 px-3 py-1.5 rounded-full border border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-800/80">
+        <div class="hidden md:flex items-center gap-2.5 px-3 py-1.5 rounded-full border border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-800/80">
           <div class="w-7 h-7 rounded-full bg-primary-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">
             A
           </div>
@@ -89,6 +111,26 @@
             <p class="text-[10px] text-gray-500 dark:text-gray-400">aldianridhoku@gmail.com</p>
           </div>
         </div>
+
+        <!-- Privacy / Sensor Mode Button (Eye icon) -->
+        <button id="privacy-btn" onclick="togglePrivacyMode()" class="p-2 rounded-xl border border-gray-200 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition" title="Mode Privasi: Sensor/Tampilkan Nominal">
+          <!-- Eye Open Icon (Visible) -->
+          <svg id="privacy-icon-open" class="w-5 h-5 block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          </svg>
+          <!-- Eye Off Icon (Hidden) -->
+          <svg id="privacy-icon-closed" class="w-5 h-5 hidden text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/>
+          </svg>
+        </button>
+
+        <!-- Lock Screen Button -->
+        <button onclick="lockScreenNow()" class="p-2 rounded-xl border border-gray-200 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition" title="Kunci Layar Sekarang">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+        </button>
 
         <!-- Dark Mode Toggle -->
         <button id="theme-toggle" class="p-2 rounded-xl border border-gray-200 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition" aria-label="Toggle Mode">
@@ -101,11 +143,11 @@
         </button>
 
         <!-- GitHub Repo Link -->
-        <a href="https://github.com/IdoGanteng/mem-finance" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gray-900 hover:bg-black text-white text-xs font-bold transition shadow-sm dark:bg-primary-600 dark:hover:bg-primary-700">
+        <a href="https://github.com/IdoGanteng/mem-finance" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-900 hover:bg-black text-white text-xs font-bold transition shadow-sm dark:bg-primary-600 dark:hover:bg-primary-700">
           <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
           </svg>
-          <span class="hidden sm:inline">GitHub Repo</span>
+          <span class="hidden sm:inline">GitHub</span>
         </a>
       </div>
     </div>
@@ -154,7 +196,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
           </svg>
-          <span>Pengaturan</span>
+          <span>Pengaturan & Privasi</span>
         </button>
 
         <hr class="my-2 border-gray-200 dark:border-gray-800 hidden md:block">
@@ -179,13 +221,18 @@
           <div class="absolute -right-10 -bottom-10 w-60 h-60 rounded-full bg-teal-500/10 blur-3xl pointer-events-none"></div>
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
             <div>
-              <p class="text-xs font-semibold tracking-wider uppercase text-teal-200">Total Saldo Bersih</p>
+              <div class="flex items-center gap-2">
+                <p class="text-xs font-semibold tracking-wider uppercase text-teal-200">Total Saldo Bersih</p>
+                <button onclick="togglePrivacyMode()" class="text-teal-300 hover:text-white transition text-xs flex items-center gap-1 font-semibold" title="Sensor/Tampilkan Nominal">
+                  <span id="privacy-label-text">Sensor</span>
+                </button>
+              </div>
               <h2 id="total-balance" class="text-3xl sm:text-4xl font-extrabold tracking-tight mt-1.5 tabular-nums">Rp 14.850.000</h2>
               <div class="mt-3 flex items-center gap-2 text-xs font-medium text-teal-200">
                 <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 font-bold">
-                  +12.4%
+                  Akun Privat
                 </span>
-                <span>dibandingkan bulan lalu · Akun: <b>Aldian Ridho</b></span>
+                <span>Terisolasi untuk: <b>Aldian Ridho</b></span>
               </div>
             </div>
             <div class="flex items-center gap-2.5">
@@ -212,7 +259,7 @@
               </span>
             </div>
             <p id="total-income" class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-2 tabular-nums">Rp 8.500.000</p>
-            <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Gaji & pendapatan sampingan</p>
+            <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Gaji & pendapatan pribadi</p>
           </div>
 
           <!-- Pengeluaran -->
@@ -224,13 +271,13 @@
               </span>
             </div>
             <p id="total-expense" class="text-2xl font-extrabold text-rose-600 dark:text-rose-400 mt-2 tabular-nums">Rp 3.240.000</p>
-            <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">54% dari total plafon anggaran</p>
+            <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Tersimpan rahasia di browser Anda</p>
           </div>
 
           <!-- Sisa Anggaran -->
           <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-xs">
             <div class="flex items-center justify-between text-gray-500 dark:text-gray-400 text-xs font-semibold">
-              <span>Sisa Anggaran Tersedia</span>
+              <span>Sisa Plafon Anggaran</span>
               <span class="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               </span>
@@ -246,7 +293,7 @@
           <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-xs">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-sm font-bold text-gray-900 dark:text-white">Pengeluaran per Kategori</h3>
-              <span class="text-xs text-gray-500 dark:text-gray-400">Bulan Ini</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">Distribusi Biaya</span>
             </div>
             <div class="relative h-64 flex items-center justify-center">
               <canvas id="categoryChart"></canvas>
@@ -257,7 +304,7 @@
           <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-xs">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-sm font-bold text-gray-900 dark:text-white">Arus Kas Mingguan</h3>
-              <span class="text-xs text-gray-500 dark:text-gray-400">September 2026</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">Tren Pemasukan vs Pengeluaran</span>
             </div>
             <div class="relative h-64">
               <canvas id="cashflowChart"></canvas>
@@ -270,7 +317,7 @@
           <div class="flex items-center justify-between mb-4">
             <div>
               <h3 class="text-sm font-bold text-gray-900 dark:text-white">Transaksi Terkini</h3>
-              <p class="text-xs text-gray-500 dark:text-gray-400">Catatan terbaru yang tersimpan di sistem</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Catatan terbaru yang tersimpan aman</p>
             </div>
             <button onclick="switchTab('transactions')" class="text-xs font-bold text-primary-600 dark:text-primary-400 hover:underline">
               Lihat Semua →
@@ -313,7 +360,7 @@
             <div class="flex items-start gap-3">
               <div class="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center text-xs font-bold shrink-0">AI</div>
               <div class="rounded-2xl rounded-tl-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-3.5 text-xs text-gray-800 dark:text-gray-200 shadow-xs max-w-md">
-                Halo <b>Aldian</b>! Anda bisa langsung ketik transaksi harian seperti:
+                Halo <b>Aldian</b>! Catat transaksi secara cepat dengan mengetik:
                 <div class="mt-2 space-y-1 font-mono text-[11px] text-primary-700 dark:text-primary-300">
                   <p class="bg-primary-50 dark:bg-primary-950/60 p-1.5 rounded cursor-pointer hover:bg-primary-100 dark:hover:bg-primary-900" onclick="fillChatInput(this.innerText)">Beli Kopi Kenangan 25.000</p>
                   <p class="bg-primary-50 dark:bg-primary-950/60 p-1.5 rounded cursor-pointer hover:bg-primary-100 dark:hover:bg-primary-900" onclick="fillChatInput(this.innerText)">Makan Siang Nasi Padang 35rb</p>
@@ -344,8 +391,8 @@
         <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-xs space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 class="text-base font-extrabold text-gray-900 dark:text-white">Daftar Semua Transaksi</h2>
-              <p class="text-xs text-gray-500 dark:text-gray-400">Total riwayat pemasukan dan pengeluaran</p>
+              <h2 class="text-base font-extrabold text-gray-900 dark:text-white">Buku Transaksi Lengkap</h2>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Riwayat pengeluaran dan pemasukan pribadi</p>
             </div>
             <div class="flex items-center gap-2">
               <button onclick="exportCSV()" class="px-3.5 py-2 rounded-xl border border-gray-200 dark:border-gray-800 text-xs font-bold hover:bg-gray-100 dark:hover:bg-gray-800 transition flex items-center gap-1.5">
@@ -403,12 +450,12 @@
         </div>
       </section>
 
-      <!-- ================= TAB 5: PENGATURAN ================= -->
+      <!-- ================= TAB 5: PENGATURAN & KEAMANAN PRIVASI ================= -->
       <section id="tab-settings" class="tab-content hidden space-y-6">
         <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-xs space-y-6">
           <div>
-            <h2 class="text-base font-extrabold text-gray-900 dark:text-white">Pengaturan Pengguna & Sistem</h2>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Kelola profil, sesi, dan penyimpanan data</p>
+            <h2 class="text-base font-extrabold text-gray-900 dark:text-white">Pengaturan & Keamanan Privasi Data</h2>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Pastikan seluruh catatan keuangan Anda aman dan terlindungi dari celah akses</p>
           </div>
 
           <!-- User Card -->
@@ -418,33 +465,71 @@
             </div>
             <div class="flex-1">
               <h3 class="text-sm font-bold text-gray-900 dark:text-white">Aldian Ridho</h3>
-              <p class="text-xs text-gray-500 dark:text-gray-400">Email Utama: <span class="font-semibold text-primary-600 dark:text-primary-400">aldianridhoku@gmail.com</span></p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Email Pemilik: <span class="font-semibold text-primary-600 dark:text-primary-400">aldianridhoku@gmail.com</span></p>
               <div class="mt-1 flex items-center gap-2">
                 <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span class="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">Akses Penuh (Administrator / Local Active)</span>
+                <span class="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">Akses Tunggal Dibatasi Khusus untuk Aldian Ridho</span>
               </div>
             </div>
           </div>
 
-          <!-- System Info -->
+          <!-- Security & Privacy Tools -->
           <div class="space-y-3">
-            <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Status Konfigurasi</h4>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Proteksi Keamanan</h4>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div class="p-3 rounded-xl border border-gray-200 dark:border-gray-800 flex justify-between items-center">
-                <span class="text-gray-600 dark:text-gray-400">Akses Pengguna</span>
-                <span class="font-bold text-gray-900 dark:text-white">aldianridhoku@gmail.com</span>
+              <!-- PIN Lock Card -->
+              <div class="p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex flex-col justify-between space-y-3">
+                <div>
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-gray-900 dark:text-white">Kunci PIN Layar</span>
+                    <span id="pin-status-badge" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">Nonaktif</span>
+                  </div>
+                  <p class="text-[11px] text-gray-500 mt-1">Mencegah orang lain melihat layar dashboard Anda saat ditinggal.</p>
+                </div>
+                <div class="flex gap-2">
+                  <button onclick="promptSetPin()" class="px-3 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs transition">
+                    Atur / Ganti PIN
+                  </button>
+                  <button id="remove-pin-btn" onclick="removePin()" class="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 text-xs font-bold text-gray-500 hover:text-rose-600 transition hidden">
+                    Hapus PIN
+                  </button>
+                </div>
               </div>
-              <div class="p-3 rounded-xl border border-gray-200 dark:border-gray-800 flex justify-between items-center">
-                <span class="text-gray-600 dark:text-gray-400">Penyimpanan Lokal</span>
-                <span class="font-bold text-emerald-600 dark:text-emerald-400">Aktif (IndexedDB / LocalStorage)</span>
+
+              <!-- Privacy Sensor Mode Card -->
+              <div class="p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex flex-col justify-between space-y-3">
+                <div>
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-gray-900 dark:text-white">Mode Sensor Saldo</span>
+                    <span id="privacy-status-badge" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">Mati</span>
+                  </div>
+                  <p class="text-[11px] text-gray-500 mt-1">Sensor nominal saldo dan transaksi agar tidak terlihat orang di sekitar.</p>
+                </div>
+                <button onclick="togglePrivacyMode()" class="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 text-xs font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition text-left">
+                  Beralih Mode Sensor (👁️)
+                </button>
               </div>
-              <div class="p-3 rounded-xl border border-gray-200 dark:border-gray-800 flex justify-between items-center">
-                <span class="text-gray-600 dark:text-gray-400">AI Receipt Parser</span>
-                <span class="font-bold text-primary-600 dark:text-primary-400">Cascade (Regex / Microservice)</span>
+            </div>
+          </div>
+
+          <!-- Clean Ledger & Data Management -->
+          <div class="space-y-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Pengelolaan Data Mandiri</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div class="p-4 rounded-xl border border-gray-200 dark:border-gray-800 space-y-2">
+                <span class="font-bold text-gray-900 dark:text-white">Mulai Catatan Bersih (Data Asli)</span>
+                <p class="text-[11px] text-gray-500">Hapus data demo simulasi dan mulai buku catatan keuangan dari Rp 0.</p>
+                <button onclick="clearToFreshLedger()" class="px-3 py-1.5 rounded-lg border border-emerald-300 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 font-bold transition">
+                  Kosongkan Data & Mulai Baru
+                </button>
               </div>
-              <div class="p-3 rounded-xl border border-gray-200 dark:border-gray-800 flex justify-between items-center">
-                <span class="text-gray-600 dark:text-gray-400">Status Build Produksi</span>
-                <span class="font-bold text-emerald-600 dark:text-emerald-400">Selesai (Node SvelteKit)</span>
+
+              <div class="p-4 rounded-xl border border-gray-200 dark:border-gray-800 space-y-2">
+                <span class="font-bold text-gray-900 dark:text-white">Cadangkan Data (JSON)</span>
+                <p class="text-[11px] text-gray-500">Unduh seluruh catatan keuangan Anda ke file backup terenkripsi.</p>
+                <button onclick="backupJSON()" class="px-3 py-1.5 rounded-lg bg-gray-900 hover:bg-black text-white font-bold transition dark:bg-gray-800 dark:hover:bg-gray-700">
+                  Unduh File Backup (.json)
+                </button>
               </div>
             </div>
           </div>
@@ -452,11 +537,11 @@
           <!-- Reset Demo Data -->
           <div class="pt-4 border-t border-gray-100 dark:border-gray-800 flex justify-between items-center">
             <div>
-              <p class="text-xs font-bold text-gray-800 dark:text-gray-200">Reset Data Demo</p>
-              <p class="text-[11px] text-gray-500">Kembalikan daftar transaksi dan saldo ke data awal bawaan.</p>
+              <p class="text-xs font-bold text-gray-800 dark:text-gray-200">Reset ke Data Contoh</p>
+              <p class="text-[11px] text-gray-500">Kembalikan daftar transaksi contoh awal untuk kebutuhan demonstrasi.</p>
             </div>
             <button onclick="resetToInitialData()" class="px-3.5 py-2 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold transition">
-              Reset Data
+              Reset Contoh
             </button>
           </div>
         </div>
@@ -467,9 +552,9 @@
 
   <!-- Quick Add Transaction Modal -->
   <div id="modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-6 shadow-2xl space-y-4 animate-scale">
+    <div class="w-full max-w-md bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-6 shadow-2xl space-y-4">
       <div class="flex items-center justify-between">
-        <h3 class="text-base font-extrabold text-gray-900 dark:text-white">Tambah Catatan Keuangan</h3>
+        <h3 class="text-base font-extrabold text-gray-900 dark:text-white">Catat Transaksi Baru</h3>
         <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg leading-none">&times;</button>
       </div>
 
@@ -549,25 +634,156 @@
     ];
 
     let state = {
-      transactions: JSON.parse(localStorage.getItem('memfinance_demo_tx') || JSON.stringify(INITIAL_TRANSACTIONS)),
+      transactions: JSON.parse(localStorage.getItem('memfinance_aldian_tx') || localStorage.getItem('memfinance_demo_tx') || JSON.stringify(INITIAL_TRANSACTIONS)),
       currentFilter: 'all',
+      privacyMode: localStorage.getItem('memfinance_privacy_mode') === 'true',
+      pin: localStorage.getItem('memfinance_aldian_pin') || '',
       chartCategory: null,
       chartCashflow: null
     };
 
     function formatRupiah(num) {
+      if (state.privacyMode) return 'Rp ••••••••';
       return 'Rp ' + Number(num || 0).toLocaleString('id-ID');
+    }
+
+    function togglePrivacyMode() {
+      state.privacyMode = !state.privacyMode;
+      localStorage.setItem('memfinance_privacy_mode', state.privacyMode ? 'true' : 'false');
+      updatePrivacyUI();
+      refreshAll();
+      showToast(state.privacyMode ? 'Mode Sensor Aktif: Nominal disembunyikan' : 'Mode Sensor Nonaktif: Nominal ditampilkan', 'info');
+    }
+
+    function updatePrivacyUI() {
+      const openIcon = document.getElementById('privacy-icon-open');
+      const closedIcon = document.getElementById('privacy-icon-closed');
+      const labelText = document.getElementById('privacy-label-text');
+      const badge = document.getElementById('privacy-status-badge');
+
+      if (state.privacyMode) {
+        openIcon.classList.add('hidden');
+        openIcon.classList.remove('block');
+        closedIcon.classList.remove('hidden');
+        closedIcon.classList.add('block');
+        if (labelText) labelText.innerText = 'Tampilkan';
+        if (badge) {
+          badge.innerText = 'Aktif (Tersensor)';
+          badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
+        }
+      } else {
+        openIcon.classList.remove('hidden');
+        openIcon.classList.add('block');
+        closedIcon.classList.add('hidden');
+        closedIcon.classList.remove('block');
+        if (labelText) labelText.innerText = 'Sensor';
+        if (badge) {
+          badge.innerText = 'Nonaktif';
+          badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
+        }
+      }
+    }
+
+    // PIN Lock Management
+    function lockScreenNow() {
+      if (!state.pin) {
+        showToast('Atur PIN keamanan terlebih dahulu di Pengaturan', 'info');
+        switchTab('settings');
+        return;
+      }
+      document.getElementById('pin-lock-overlay').classList.remove('hidden');
+      document.getElementById('unlock-pin-input').value = '';
+      document.getElementById('unlock-pin-input').focus();
+    }
+
+    function attemptUnlock() {
+      const entered = document.getElementById('unlock-pin-input').value.trim();
+      const errEl = document.getElementById('unlock-error');
+      if (entered === state.pin) {
+        errEl.classList.add('hidden');
+        document.getElementById('pin-lock-overlay').classList.add('hidden');
+        showToast('Kunci berhasil dibuka. Selamat datang kembali, Aldian!');
+      } else {
+        errEl.classList.remove('hidden');
+      }
+    }
+
+    document.getElementById('unlock-pin-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') attemptUnlock();
+    });
+
+    function promptSetPin() {
+      const current = prompt('Masukkan 4-6 digit PIN baru untuk mengunci catatan Anda:');
+      if (current === null) return;
+      if (!/^\d{4,6}$/.test(current)) {
+        alert('PIN harus berupa 4 sampai 6 digit angka.');
+        return;
+      }
+      state.pin = current;
+      localStorage.setItem('memfinance_aldian_pin', current);
+      updatePinUI();
+      showToast('PIN keamanan berhasil diaktifkan!', 'success');
+    }
+
+    function removePin() {
+      if (!confirm('Apakah Anda yakin ingin menghapus PIN keamanan?')) return;
+      state.pin = '';
+      localStorage.removeItem('memfinance_aldian_pin');
+      updatePinUI();
+      showToast('PIN keamanan telah dinonaktifkan', 'info');
+    }
+
+    function updatePinUI() {
+      const badge = document.getElementById('pin-status-badge');
+      const removeBtn = document.getElementById('remove-pin-btn');
+      if (state.pin) {
+        badge.innerText = 'Aktif (Terkunci PIN)';
+        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
+        removeBtn.classList.remove('hidden');
+      } else {
+        badge.innerText = 'Nonaktif';
+        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
+        removeBtn.classList.add('hidden');
+      }
+    }
+
+    function clearToFreshLedger() {
+      if (!confirm('Kosongkan semua data contoh dan mulai buku catatan asli dari Rp 0?')) return;
+      state.transactions = [];
+      refreshAll();
+      showToast('Buku catatan berhasil dikosongkan. Siap mencatat data asli!', 'success');
+      switchTab('dashboard');
+    }
+
+    function backupJSON() {
+      const backupData = {
+        owner: 'Aldian Ridho',
+        email: 'aldianridhoku@gmail.com',
+        exportedAt: new Date().toISOString(),
+        transactions: state.transactions
+      };
+      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `memfinance_backup_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('File backup data pribadi berhasil diunduh!');
     }
 
     function showToast(message, type = 'success') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
       const isSuccess = type === 'success';
-      toast.className = `pointer-events-auto flex items-center gap-2 px-4 py-3 rounded-2xl text-xs font-bold text-white shadow-xl transition-all transform duration-200 translate-y-2 opacity-0 ${
-        isSuccess ? 'bg-emerald-600' : 'bg-rose-600'
-      }`;
+      const isInfo = type === 'info';
+      let bg = 'bg-emerald-600';
+      if (!isSuccess && !isInfo) bg = 'bg-rose-600';
+      if (isInfo) bg = 'bg-teal-700';
+
+      toast.className = `pointer-events-auto flex items-center gap-2 px-4 py-3 rounded-2xl text-xs font-bold text-white shadow-xl transition-all transform duration-200 translate-y-2 opacity-0 ${bg}`;
       toast.innerHTML = `
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="${isSuccess ? 'M5 13l4 4L19 7' : 'M6 18L18 6M6 6l12 12'}"/></svg>
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="${isSuccess ? 'M5 13l4 4L19 7' : 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'}"/></svg>
         <span>${message}</span>
       `;
       container.appendChild(toast);
@@ -601,7 +817,7 @@
         if (t.type === 'income') income += Number(t.amount);
         if (t.type === 'expense') expense += Number(t.amount);
       });
-      const balance = 9590000 + (income - expense); // Base balance + net
+      const balance = (income - expense);
       const remainingBudget = Math.max(6000000 - expense, 0);
 
       document.getElementById('total-balance').innerText = formatRupiah(balance);
@@ -614,6 +830,11 @@
       const tbody = document.getElementById('recent-transactions-tbody');
       tbody.innerHTML = '';
       const recent = [...state.transactions].reverse().slice(0, 5);
+
+      if (recent.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-xs text-gray-400">Belum ada transaksi. Klik "Catat Transaksi" untuk mulai.</td></tr>`;
+        return;
+      }
 
       recent.forEach(t => {
         const isExpense = t.type === 'expense';
@@ -744,22 +965,24 @@
       // Cashflow weekly
       const ctxCash = document.getElementById('cashflowChart').getContext('2d');
       if (state.chartCashflow) state.chartCashflow.destroy();
+
+      let totalInc = 0;
+      let totalExp = 0;
+      state.transactions.forEach(t => {
+        if (t.type === 'income') totalInc += Number(t.amount);
+        if (t.type === 'expense') totalExp += Number(t.amount);
+      });
+
       state.chartCashflow = new Chart(ctxCash, {
         type: 'bar',
         data: {
-          labels: ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'],
+          labels: ['Total Pemasukan', 'Total Pengeluaran'],
           datasets: [
             {
-              label: 'Pemasukan',
-              data: [8500000, 0, 0, 0],
-              backgroundColor: '#10b981',
-              borderRadius: 6
-            },
-            {
-              label: 'Pengeluaran',
-              data: [850000, 215000, 1945000, 230000],
-              backgroundColor: '#f43f5e',
-              borderRadius: 6
+              label: 'Arus Kas (Rp)',
+              data: [totalInc, totalExp],
+              backgroundColor: ['#10b981', '#f43f5e'],
+              borderRadius: 8
             }
           ]
         },
@@ -767,7 +990,7 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+            legend: { display: false }
           },
           scales: {
             y: { ticks: { font: { size: 9 }, callback: (v) => 'Rp ' + (v/1000000) + 'jt' } },
@@ -778,7 +1001,7 @@
     }
 
     function refreshAll() {
-      localStorage.setItem('memfinance_demo_tx', JSON.stringify(state.transactions));
+      localStorage.setItem('memfinance_aldian_tx', JSON.stringify(state.transactions));
       calculateMetrics();
       renderRecentTransactions();
       renderAllTransactions();
@@ -862,7 +1085,7 @@
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement('a');
       link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `memfinance_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `memfinance_aldian_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -870,8 +1093,9 @@
     }
 
     function resetToInitialData() {
+      if (!confirm('Kembalikan data ke contoh demonstrasi?')) return;
       state.transactions = JSON.parse(JSON.stringify(INITIAL_TRANSACTIONS));
-      showToast('Data demo berhasil direset ke awal');
+      showToast('Data demonstrasi dimuat kembali');
       refreshAll();
     }
 
@@ -903,7 +1127,6 @@
 
     function parseTextToTx(text) {
       const lower = text.toLowerCase();
-      // Match amount
       let amount = null;
       const kMatch = lower.match(/(\d+)\s*(rb|k|ribu)/);
       const numMatch = lower.match(/(?:rp\.?|idr)?\s*([\d.]+)/);
@@ -1024,7 +1247,14 @@
       if (darkPref === 'true') {
         document.documentElement.classList.add('dark');
       }
+      updatePrivacyUI();
+      updatePinUI();
       refreshAll();
+
+      // If PIN is active, lock on startup
+      if (state.pin) {
+        lockScreenNow();
+      }
     })();
   </script>
 </body>

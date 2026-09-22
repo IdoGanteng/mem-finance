@@ -33,10 +33,15 @@ test-results/
 playwright-report/
 coverage/
 
-# SQLite (user data, not code)
+# SQLite & User Data Exports (user data, not code)
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
+*.csv
+!tests/**/*.csv
+backup/
+backups/
+exports/
 
 # WASM (handled via static/ import)
 node_modules/sql.js/dist/*.wasm
