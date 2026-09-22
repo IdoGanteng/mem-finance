@@ -31,6 +31,14 @@
 	function resetError() { error = ''; }
 
 	onMount(() => {
+		const urlParams = new URLSearchParams(window.location.search);
+		const errParam = urlParams.get('error');
+		if (errParam === 'unauthorized_email') {
+			error = 'Akses ditolak: Akun ini tidak memiliki izin. Hanya aldianridhoku@gmail.com yang diizinkan.';
+		} else if (errParam === 'auth_failed') {
+			error = 'Autentikasi gagal. Silakan coba lagi.';
+		}
+
 		const script = document.createElement('script');
 		script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 		script.async = true;
